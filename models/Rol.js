@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from "mongoose";
 
 const RolSchema = mongoose.Schema({
     nombre: {
@@ -11,4 +11,5 @@ const RolSchema = mongoose.Schema({
     }
 });
 
-module.exports = mongoose.model('Rol', RolSchema);
+//module.exports = mongoose.model('Rol', RolSchema);
+export default mongoose.model("Rol", RolSchema);
