@@ -12,6 +12,7 @@ app.use(cors())
 app.use(express.json());
 
 app.use('/api/rol', require('./routes/rol'));
+app.use('/api/tipoProducto', require('./routes/tipoProducto'));
 
 //Definimos ruta principal
 /*app.get('/', (req, res) => {

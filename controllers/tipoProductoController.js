@@ -4,10 +4,10 @@ exports.crearTipoProducto = async (req, res) => {
     try {
         let tipoProducto;
 
-        //Cramos nuestro rol
+        //Cramos nuestro tipoProducto
         tipoProducto = new TipoProducto(req.body);
 
-        await rol.save();
+        await tipoProducto.save();
         res.send(tipoProducto);
 
     } catch (error) {
@@ -16,7 +16,7 @@ exports.crearTipoProducto = async (req, res) => {
     }
 }
 
-exports.obtenerTipoProducto = async (req, res) => {
+exports.obtenerTiposProducto = async (req, res) => {
     try {
 
         const tipoProducto = await TipoProducto.find();
