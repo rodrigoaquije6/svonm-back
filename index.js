@@ -13,6 +13,9 @@ app.use(express.json());
 
 app.use('/api/rol', require('./routes/rol'));
 
+//crear marca
+app.use('/api/crear-marca', require('./routes/crear-marca'));
+
 //Definimos ruta principal
 /*app.get('/', (req, res) => {
     res.send("Hola mundo!");
