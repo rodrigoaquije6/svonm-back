@@ -13,6 +13,7 @@ app.use(express.json());
 
 app.use('/api/rol', require('./routes/rol'));
 app.use('/api/tipoProducto', require('./routes/tipoProducto'));
+app.use('/api/producto', require('./routes/producto'));
 
 //Definimos ruta principal
 /*app.get('/', (req, res) => {

@@ -19,7 +19,6 @@ const ProductoSchema = mongoose.Schema({
     },
     imagen: {
         type: Buffer,
-        required: true
     },
     fechaCreacion: {
         type: Date,
