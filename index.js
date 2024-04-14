@@ -13,6 +13,8 @@ app.use(express.json());
 
 app.use('/api/rol', require('./routes/rol'));
 
+app.use('/api/montura', require('./routes/montura'));
+
 //Definimos ruta principal
 /*app.get('/', (req, res) => {
     res.send("Hola mundo!");
