@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const trabajador = require('./Trabajador');
 
 const TrabajadorSchema = mongoose.Schema({
     dni: {
@@ -15,7 +14,7 @@ const TrabajadorSchema = mongoose.Schema({
         required: true
     },
     estado: {
-        type: Boolean,
+        type: String,
         required: true
     },
     fechaCreacion: {

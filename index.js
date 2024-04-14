@@ -12,6 +12,8 @@ app.use(cors())
 app.use(express.json());
 
 app.use('/api/rol', require('./routes/rol'));
+app.use('/api/trabajador', require('./routes/trabajador'));
+
 
 //Definimos ruta principal
 /*app.get('/', (req, res) => {
