@@ -1,11 +1,8 @@
 const mongoose = require('mongoose');
 
 const CrearMarcaSchema = mongoose.Schema({
-codigo:{
-    type:Number,
-    required:true
-},
-marca:{
+
+nombre:{
     type:String,
     required:true
 },
