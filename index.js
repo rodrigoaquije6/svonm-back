@@ -12,6 +12,8 @@ app.use(cors())
 app.use(express.json());
 
 app.use('/api/rol', require('./routes/rol'));
+app.use('/api/trabajador', require('./routes/trabajador'));
+
 app.use('/api/montura', require('./routes/montura'));
 app.use('/api/crear-marca', require('./routes/crear-marca'));
 
