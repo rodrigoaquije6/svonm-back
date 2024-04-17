@@ -12,7 +12,7 @@ app.use(cors())
 app.use(express.json());
 
 app.use('/api/rol', require('./routes/rol'));
-
+app.use('/api/montura', require('./routes/montura'));
 app.use('/api/crear-marca', require('./routes/crear-marca'));
 
 //Definimos ruta principal
@@ -20,6 +20,6 @@ app.use('/api/crear-marca', require('./routes/crear-marca'));
     res.send("Hola mundo!");
 })*/
 
-app.listen(4000,() => {
+app.listen(4000, () => {
     console.log("El servidor esta corriendo perfectamente")
 })
