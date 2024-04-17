@@ -24,6 +24,9 @@ const MonturaSchema = mongoose.Schema({
         type: Number,
         required: true
     },
+    imagen: { 
+        type: String 
+    },
 
     fechaCreacion: {
         type: Date,
