@@ -27,6 +27,32 @@ exports.crearMontura = async (req, res) => {
     }
 }
 
+exports.actualizarMontura = async (req, res) => {
+    try {
+
+        const { codigo, marca, nombre, color, precio, imagen } = req.body;
+        let montura = await Montura.findById(req.params.id);
+
+        if (!montura) {
+            res.status(404).json({ msg: 'No existe la montura' })
+        }
+
+        montura.codigo = codigo,
+        montura.marca = marca,
+        montura.nombre = nombre,
+        montura.color = color,
+        montura.precio = precio,
+        montura.imagen = imagen,
+
+        montura = await Montura.findOneAndUpdate({ _id: req.params.id }, montura, { new: true })
+        res.json(montura);
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).send('Hubo un error');
+    }
+}
+
 exports.obtenerMonturas = async (req, res) => {
     try {
 
@@ -44,12 +70,12 @@ exports.obtenerMontura = async (req, res) => {
 
         let montura = await Montura.findById(req.params.id);
 
-        if(!montura){
+        if (!montura) {
             res.status(404).json({ msg: 'No existe la montura' })
         }
 
         res.json(montura);
-        
+
     } catch (error) {
         console.log(error);
         res.status(500).send('Hubo un error');
