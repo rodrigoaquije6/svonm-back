@@ -8,6 +8,6 @@ const monturaController = require('../controllers/monturaController');
 router.post('/', monturaController.crearMontura);
 router.get('/', monturaController.obtenerMonturas);
 router.delete('/:id', monturaController.eliminarMontura);
-
+router.get('/:id', monturaController.obtenerMontura);
 
 module.exports = router;            

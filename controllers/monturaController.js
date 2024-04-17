@@ -39,6 +39,23 @@ exports.obtenerMonturas = async (req, res) => {
     }
 }
 
+exports.obtenerMontura = async (req, res) => {
+    try {
+
+        let montura = await Montura.findById(req.params.id);
+
+        if(!montura){
+            res.status(404).json({ msg: 'No existe la montura' })
+        }
+
+        res.json(montura);
+        
+    } catch (error) {
+        console.log(error);
+        res.status(500).send('Hubo un error');
+    }
+}
+
 exports.eliminarMontura = async (req, res) => {
     try {
 
