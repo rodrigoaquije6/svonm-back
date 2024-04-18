@@ -3,7 +3,8 @@ import mongoose from "mongoose";
 const RolSchema = mongoose.Schema({
     nombre: {
         type: String,
-        required: true
+        required: true,
+        trim: true,
     },
     fechaCreacion: {
         type: Date,

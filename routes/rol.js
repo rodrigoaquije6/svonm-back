@@ -9,6 +9,8 @@ import {
   } from "../controllers/rolController.js";
 import { authRequired } from "../middlewares/validateToken.js";
 
+
+
 const router = Router();
 
 router.post('/rol', authRequired, crearRol);
