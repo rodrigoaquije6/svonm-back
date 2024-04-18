@@ -1,12 +1,20 @@
-const express = require('express');
-const router = express.Router();
-const trabajadorController = require('../controllers/trabajadorController');
+import { Router } from "express";
+import {
+    crearTrabajador,
+    obtenerTrabajador,
+    obtenerTrabajadores,
+    actualizarTrabajador,
+    eliminarTrabajador
+  } from "../controllers/trabajadorController.js";
+import { authRequired } from "../middlewares/validateToken.js";
+
+const router = Router();
 
 //api/trabajador
-router.post('/', trabajadorController.crearTrabajador);
-router.get('/', trabajadorController.obtenerTrabajadores);
-router.put('/:id', trabajadorController.actualizarTrabajador);
-router.delete('/:id', trabajadorController.eliminarTrabajador);
-router.get('/:id', trabajadorController.obtenerTrabajador);
+router.post('/trabajador', authRequired, crearTrabajador);
+router.get('/trabajador', authRequired, obtenerTrabajadores);
+router.put('/trabajador/:id', authRequired, actualizarTrabajador);
+router.delete('/trabajador/:id', authRequired, eliminarTrabajador);
+router.get('/trabajador/:id', authRequired, obtenerTrabajador);
 
-module.exports = router;
+export default router;

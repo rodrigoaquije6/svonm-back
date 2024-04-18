@@ -1,6 +1,6 @@
-const Trabajador = require("../models/Trabajador")
+import Trabajador from "../models/Trabajador.js";
 
-exports.crearTrabajador = async (req, res) => {
+export const crearTrabajador = async (req, res) => {
     try {
         let trabajador;
 
@@ -16,7 +16,7 @@ exports.crearTrabajador = async (req, res) => {
     }
 }
 
-exports.obtenerTrabajadores = async (req, res) => {
+export const obtenerTrabajadores = async (req, res) => {
     try {
 
         const trabajadores = await Trabajador.find();
@@ -28,7 +28,7 @@ exports.obtenerTrabajadores = async (req, res) => {
     }
 }
 
-exports.obtenerTrabajador = async (req, res) => {
+export const obtenerTrabajador = async (req, res) => {
     try {
 
         let trabajador = await Trabajador.findById(req.params.id);
@@ -45,7 +45,7 @@ exports.obtenerTrabajador = async (req, res) => {
     }
 }
 
-exports.actualizarTrabajador = async (req, res) => {
+export const actualizarTrabajador = async (req, res) => {
     try {
 
         const { dni, nombre, rol, estado } = req.body;
@@ -69,7 +69,7 @@ exports.actualizarTrabajador = async (req, res) => {
     }
 }
 
-exports.eliminarTrabajador = async (req, res) => {
+export const eliminarTrabajador = async (req, res) => {
     try {
 
         let trabajador = await Trabajador.findById(req.params.id);

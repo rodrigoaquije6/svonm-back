@@ -1,20 +1,14 @@
-const express = require('express');
-const conectarDB = require('./config/db');
-const cors = require("cors");
+import app from "./app.js";
+import {conectarDB} from './config/db.js';
 
-//Creamos el servidor
-const app = express();
 
 //Conectamos a la BD
 conectarDB();
-app.use(cors())
-
-app.use(express.json());
-
-app.use('/api/rol', require('./routes/rol'));
-app.use('/api/trabajador', require('./routes/trabajador'));
-app.use('/api/montura', require('./routes/montura'));
-app.use('/api/crear-marca', require('./routes/crear-marca'));
+//aun no 
+//app.use('/api/rol', require('./routes/rol'));
+//app.use('/api/trabajador', require('./routes/trabajador'));
+//app.use('/api/montura', require('./routes/montura'));
+//app.use('/api/crear-marca', require('./routes/crear-marca'));
 
 //Definimos ruta principal
 /*app.get('/', (req, res) => {

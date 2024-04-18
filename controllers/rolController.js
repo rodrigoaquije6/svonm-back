@@ -1,6 +1,6 @@
-const Rol = require("../models/Rol");
+import Rol from "../models/Rol.js";
 
-exports.crearRol = async (req, res) => {
+export const crearRol = async (req, res) => {
     try {
         let rol;
 
@@ -16,7 +16,7 @@ exports.crearRol = async (req, res) => {
     }
 }
 
-exports.obtenerRoles = async (req, res) => {
+export const obtenerRoles = async (req, res) => {
     try {
 
         const roles = await Rol.find();
@@ -28,7 +28,7 @@ exports.obtenerRoles = async (req, res) => {
     }
 }
 
-exports.obtenerRol = async (req, res) => {
+export const obtenerRol = async (req, res) => {
     try {
 
         let rol = await Rol.findById(req.params.id);
@@ -45,7 +45,7 @@ exports.obtenerRol = async (req, res) => {
     }
 }
 
-exports.actualizarRol = async (req, res) => {
+export const actualizarRol = async (req, res) => {
     try {
 
         const { nombre } = req.body;
@@ -66,8 +66,7 @@ exports.actualizarRol = async (req, res) => {
     }
 }
 
-
-exports.eliminarRol = async (req, res) => {
+export const eliminarRol = async (req, res) => {
     try {
 
         let rol = await Rol.findById(req.params.id);

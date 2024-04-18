@@ -1,13 +1,20 @@
-//Rutas para marca
-const express = require('express')
-const router = express.Router();
-const crearmarcaController = require('../controllers/crear-marcaController')
+import { Router } from "express";
+import {
+    crearMarca,
+    obtenerMarca,
+    obtenerMarcas,
+    actualizarMarca,
+    eliminarMarca
+  } from "../controllers/crear-marcaController.js";
+import { authRequired } from "../middlewares/validateToken.js";
+
+const router = Router();
 
 //api/marcas
-router.post('/',crearmarcaController.crearMarca);
-router.get('/',crearmarcaController.obtenerMarcas);
-router.put('/:id',crearmarcaController.actualizarMarca);
-router.delete('/:id',crearmarcaController.eliminarMarca);
-router.get('/:id', crearmarcaController.obtenerMarca);
+router.post('/crear-marca', authRequired, crearMarca);
+router.get('/crear-marca', authRequired, obtenerMarcas);
+router.put('/crear-marca/:id', authRequired, actualizarMarca);
+router.delete('/crear-marca/:id', authRequired, eliminarMarca);
+router.get('/crear-marca/:id', authRequired, obtenerMarca);
 
-module.exports=router;
+export default router;

@@ -1,12 +1,12 @@
-const crearMarca = require("../models/crear-marca");
+import Marca from "../models/Crear-marca.js";
 
-exports.crearMarca = async (req, res) => {
+export const crearMarca = async (req, res) => {
     try {
         let marca;
 
         //creamos marca
 
-        marca = new crearMarca(req.body);
+        marca = new Marca(req.body);
 
         await marca.save();
         res.send(marca);
@@ -19,10 +19,10 @@ exports.crearMarca = async (req, res) => {
     }
 }
 
-exports.obtenerMarcas = async (req, res) => {
+export const obtenerMarcas = async (req, res) => {
     try {
 
-        const marcas = await crearMarca.find();
+        const marcas = await Marca.find();
         res.json(marcas)
 
 
@@ -32,10 +32,10 @@ exports.obtenerMarcas = async (req, res) => {
     }
 }
 
-exports.obtenerMarca = async (req, res) => {
+export const obtenerMarca = async (req, res) => {
     try {
 
-        let marcas = await crearMarca.findById(req.params.id);
+        let marcas = await Marca.findById(req.params.id);
 
         if (!marcas) {
             res.status(404).json({ msg: 'No existe la marca' })
@@ -49,11 +49,11 @@ exports.obtenerMarca = async (req, res) => {
     }
 }
 
-exports.actualizarMarca = async (req, res) => {
+export const actualizarMarca = async (req, res) => {
     try {
 
         const { nombre } = req.body;
-        let marcas = await crearMarca.findById(req.params.id);
+        let marcas = await Marca.findById(req.params.id);
 
         if (!marcas) {
             res.status(404).json({ msg: 'No existe la marca' })
@@ -61,7 +61,7 @@ exports.actualizarMarca = async (req, res) => {
 
         marcas.nombre = nombre;
 
-        marcas = await crearMarca.findOneAndUpdate({ _id: req.params.id }, marcas, { new: true })
+        marcas = await Marca.findOneAndUpdate({ _id: req.params.id }, marcas, { new: true })
         res.json(marcas);
 
     } catch (error) {
@@ -70,16 +70,16 @@ exports.actualizarMarca = async (req, res) => {
     }
 }
 
-exports.eliminarMarca = async (req, res) => {
+export const eliminarMarca = async (req, res) => {
     try {
 
-        let marca = await crearMarca.findById(req.params.id);
+        let marca = await Marca.findById(req.params.id);
 
         if (!marca) {
             res.status(404).json({ msg: 'No existe la marca' })
         }
 
-        await crearMarca.deleteOne({ _id: req.params.id })
+        await Marca.deleteOne({ _id: req.params.id })
         res.json({ msg: 'Marca eliminada con éxito' });
 
     } catch (error) {

@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from "mongoose";
 
 const MonturaSchema = mongoose.Schema({
     codigo: {
@@ -45,4 +45,5 @@ const MonturaSchema = mongoose.Schema({
     }
 });
 
-module.exports = mongoose.model('Montura', MonturaSchema);
+//module.exports = mongoose.model('Montura', MonturaSchema);
+export default mongoose.model("Montura", MonturaSchema);

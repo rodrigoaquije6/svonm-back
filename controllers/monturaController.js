@@ -1,6 +1,6 @@
-const Montura = require("../models/Montura");
+import Montura from "../models/Montura.js";
 
-exports.crearMontura = async (req, res) => {
+export const crearMontura = async (req, res) => {
     try {
         // Extraer los datos de la montura del cuerpo de la solicitud
         const { codigo, marca, nombre, color, género, precio, forma, imagen } = req.body;
@@ -29,7 +29,7 @@ exports.crearMontura = async (req, res) => {
     }
 }
 
-exports.actualizarMontura = async (req, res) => {
+export const actualizarMontura = async (req, res) => {
     try {
 
         const { codigo, marca, nombre, color, género, precio, forma, imagen } = req.body;
@@ -57,7 +57,7 @@ exports.actualizarMontura = async (req, res) => {
     }
 }
 
-exports.obtenerMonturas = async (req, res) => {
+export const obtenerMonturas = async (req, res) => {
     try {
 
         const monturas = await Montura.find();
@@ -69,7 +69,7 @@ exports.obtenerMonturas = async (req, res) => {
     }
 }
 
-exports.obtenerMontura = async (req, res) => {
+export const obtenerMontura = async (req, res) => {
     try {
 
         let montura = await Montura.findById(req.params.id);
@@ -86,7 +86,7 @@ exports.obtenerMontura = async (req, res) => {
     }
 }
 
-exports.eliminarMontura = async (req, res) => {
+export const eliminarMontura = async (req, res) => {
     try {
 
         let montura = await Montura.findById(req.params.id);

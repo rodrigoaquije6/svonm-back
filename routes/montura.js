@@ -1,13 +1,20 @@
-//Rutas para rol
-const express = require('express');
-const router = express.Router();
-const monturaController = require('../controllers/monturaController');
+import { Router } from "express";
+import {
+    crearMontura,
+    obtenerMontura,
+    obtenerMonturas,
+    actualizarMontura,
+    eliminarMontura
+  } from "../controllers/monturaController.js";
+import { authRequired } from "../middlewares/validateToken.js";
+
+const router = Router();
 
 //api/montura
-router.post('/', monturaController.crearMontura);
-router.get('/', monturaController.obtenerMonturas);
-router.put('/:id', monturaController.actualizarMontura);
-router.delete('/:id', monturaController.eliminarMontura);
-router.get('/:id', monturaController.obtenerMontura);
+router.post('/montura', authRequired, crearMontura);
+router.get('/montura', authRequired, obtenerMonturas);
+router.put('/montura/:id', authRequired, actualizarMontura);
+router.delete('/montura/:id', authRequired, eliminarMontura);
+router.get('/montura/:id', authRequired, obtenerMontura);
 
-module.exports = router;            
+export default router;

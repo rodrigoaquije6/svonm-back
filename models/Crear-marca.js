@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from "mongoose";
 
 const CrearMarcaSchema = mongoose.Schema({
 
@@ -12,4 +12,5 @@ fechaCreacion: {
 }
 });
 
-module.exports = mongoose.model('Crear-marca',CrearMarcaSchema);
+//module.exports = mongoose.model('Marca',CrearMarcaSchema);
+export default mongoose.model("Marca", CrearMarcaSchema);
