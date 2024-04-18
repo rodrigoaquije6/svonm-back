@@ -20,12 +20,23 @@ const MonturaSchema = mongoose.Schema({
         required: true
     },
 
+    género: {
+        type: String,
+        required: true
+    },
+
     precio: {
         type: Number,
         required: true
     },
+
+    forma: {
+        type: String,
+        required: true
+    },
     imagen: { 
-        type: String 
+        type: String,
+        required: true
     },
 
     fechaCreacion: {

@@ -3,7 +3,7 @@ const Montura = require("../models/Montura");
 exports.crearMontura = async (req, res) => {
     try {
         // Extraer los datos de la montura del cuerpo de la solicitud
-        const { codigo, marca, nombre, color, precio, imagen } = req.body;
+        const { codigo, marca, nombre, color, género, precio, forma, imagen } = req.body;
 
         // Crear una nueva instancia de Montura con los datos proporcionados
         const nuevaMontura = new Montura({
@@ -11,7 +11,9 @@ exports.crearMontura = async (req, res) => {
             marca,
             nombre,
             color,
+            género,
             precio,
+            forma,
             imagen
         });
 
@@ -30,7 +32,7 @@ exports.crearMontura = async (req, res) => {
 exports.actualizarMontura = async (req, res) => {
     try {
 
-        const { codigo, marca, nombre, color, precio, imagen } = req.body;
+        const { codigo, marca, nombre, color, género, precio, forma, imagen } = req.body;
         let montura = await Montura.findById(req.params.id);
 
         if (!montura) {
@@ -41,7 +43,9 @@ exports.actualizarMontura = async (req, res) => {
         montura.marca = marca,
         montura.nombre = nombre,
         montura.color = color,
+        montura.género = género,
         montura.precio = precio,
+        montura.forma = forma,
         montura.imagen = imagen,
 
         montura = await Montura.findOneAndUpdate({ _id: req.params.id }, montura, { new: true })
