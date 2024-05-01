@@ -2,10 +2,6 @@ import mongoose from "mongoose";
 
 const ProductoCatalogoSchema = mongoose.Schema({
 
-id:{
-    type: Number,
-    required: true
-},
 nombre:{
     type: String,
     required: true
