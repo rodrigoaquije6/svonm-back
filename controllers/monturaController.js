@@ -3,18 +3,19 @@ import Montura from "../models/Montura.js";
 export const crearMontura = async (req, res) => {
     try {
         // Extraer los datos de la montura del cuerpo de la solicitud
-        const { codigo, marca, nombre, color, género, precio, forma, imagen } = req.body;
+        const { codigo, tipoP, nombre, precio, imagen, marca, color, género, forma  } = req.body;
 
         // Crear una nueva instancia de Montura con los datos proporcionados
         const nuevaMontura = new Montura({
             codigo,
-            marca,
+            tipoP,
             nombre,
+            precio,
+            imagen,
+            marca,
             color,
             género,
-            precio,
-            forma,
-            imagen
+            forma
         });
 
         // Guardar la montura en la base de datos
@@ -32,7 +33,7 @@ export const crearMontura = async (req, res) => {
 export const actualizarMontura = async (req, res) => {
     try {
 
-        const { codigo, marca, nombre, color, género, precio, forma, imagen } = req.body;
+        const { codigo, tipoP, nombre, precio, imagen, marca, color, género, forma  } = req.body;
         let montura = await Montura.findById(req.params.id);
 
         if (!montura) {
@@ -40,13 +41,15 @@ export const actualizarMontura = async (req, res) => {
         }
 
         montura.codigo = codigo,
-        montura.marca = marca,
+        montura.tipoP = tipoP,
         montura.nombre = nombre,
+        montura.precio = precio,
+        montura.imagen = imagen,
+        montura.marca = marca,
         montura.color = color,
         montura.género = género,
-        montura.precio = precio,
-        montura.forma = forma,
-        montura.imagen = imagen,
+        montura.forma = forma
+        
 
         montura = await Montura.findOneAndUpdate({ _id: req.params.id }, montura, { new: true })
         res.json(montura);
