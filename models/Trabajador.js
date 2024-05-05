@@ -2,8 +2,9 @@ import mongoose from "mongoose";
 
 const TrabajadorSchema = mongoose.Schema({
     dni: {
-        type: String,
-        required: true
+        type: Number,
+        required: true,
+        unique: true
     },
     nombre: {
         type: String,
