@@ -1,21 +1,21 @@
 import { Router } from "express";
 import {
-    crearRol,
-    obtenerRol,
-    obtenerRoles,
-    eliminarRol,
-    actualizarRol,
+  crearRol,
+  obtenerRol,
+  obtenerRoles,
+  eliminarRol,
+  actualizarRol,
 
-  } from "../controllers/rolController.js";
+} from "../controllers/rolController.js";
 import { authRequired } from "../middlewares/validateToken.js";
-
+import validationRol from "../validation/rolValidator.js";
 
 
 const router = Router();
 
-router.post('/rol', authRequired, crearRol);
+router.post('/rol', authRequired, validationRol(), crearRol);
 router.get('/rol', authRequired, obtenerRoles);
-router.put('/rol/:id', authRequired, actualizarRol);
+router.put('/rol/:id', authRequired, validationRol(), actualizarRol);
 router.get('/rol/:id', authRequired, obtenerRol);
 router.delete('/rol/:id', authRequired, eliminarRol);
 

@@ -1,11 +1,11 @@
 import { Router } from "express";
 import {
-    crearTrabajador,
-    obtenerTrabajador,
-    obtenerTrabajadores,
-    actualizarTrabajador,
-    eliminarTrabajador
-  } from "../controllers/trabajadorController.js";
+  crearTrabajador,
+  obtenerTrabajador,
+  obtenerTrabajadores,
+  actualizarTrabajador,
+  eliminarTrabajador
+} from "../controllers/trabajadorController.js";
 import { authRequired } from "../middlewares/validateToken.js";
 import validationTrabajador from "../validation/trabajadorValidator.js";
 

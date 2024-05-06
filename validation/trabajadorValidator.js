@@ -3,12 +3,12 @@ import Trabajador from "../models/Trabajador.js";
 
 const validationTrabajador = () => {
     return [
-        check('dni').notEmpty().withMessage('El DNI es obligario'),
+        check('dni').notEmpty().withMessage('El DNI es obligatorio'),
         check('dni').isNumeric().withMessage('El DNI no debe contiene letras ni simbolos'),
         check('dni').isLength( ({ min: 8, max:8 }) ).withMessage('El DNI debe tener 8 números'),
 
         check('nombre').notEmpty().withMessage('El nombre es obligario'),
-        check('nombre').matches(/^[A-Za-z\s]+$/).withMessage('El nombre no contiene números'),
+        check('nombre').matches(/^[A-Za-z\s]+$/).withMessage('El nombre no contiene números ni simbolos'),
 
         check('rol').notEmpty().withMessage('El rol es obligario'),
         check('rol').isIn(['Gerente', 'Trabajador']).withMessage('El rol no es válido'),
