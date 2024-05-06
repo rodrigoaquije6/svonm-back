@@ -14,7 +14,7 @@ const router = Router();
 //api/trabajador
 router.post('/trabajador', authRequired, validationTrabajador(), crearTrabajador);
 router.get('/trabajador', authRequired, obtenerTrabajadores);
-router.put('/trabajador/:id', authRequired, actualizarTrabajador);
+router.put('/trabajador/:id', authRequired, validationTrabajador(), actualizarTrabajador);
 router.delete('/trabajador/:id', authRequired, eliminarTrabajador);
 router.get('/trabajador/:id', authRequired, obtenerTrabajador);
 
