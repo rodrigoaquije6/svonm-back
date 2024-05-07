@@ -17,9 +17,9 @@ const validationTrabajador = () => {
         check('estado').isIn(['Activo', 'Inactivo']).withMessage('El estado no es válido'),
 
         // Validación de DNI único
-        check('dni').custom(async (value) => {
+        check('dni').custom(async (value, { req }) => {
             const trabajador = await Trabajador.findOne({ dni: value });
-            if (trabajador) {
+            if (trabajador && (req.params.id !== trabajador._id.toString())) {
                 throw new Error('El DNI ya está registrado');
             }
         }),
