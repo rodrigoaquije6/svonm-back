@@ -1,16 +1,16 @@
 import { check, validationResult } from "express-validator";
-import Marca from "../models/Crear-marca.js";
+import tipoProducto from "../models/TipoProducto.js";
 
-const validationMarca = () => {
+const validationTipoProducto = () => {
     return [
-        check('nombre').notEmpty().withMessage('El nombre de la marca es obligatorio'),
-        check('nombre').matches(/^[A-Za-zÁ-Úá-ú\s]+$/).withMessage('El nombre de la marca no contiene números ni simbolos'),
+        check('nombre').notEmpty().withMessage('El nombre del tipo de producto es obligatorio'),
+        check('nombre').matches(/^[A-Za-zÁ-Úá-ú\s]+$/).withMessage('El nombre del tipo de producto no contiene números ni simbolos'),
 
         // Validación de nombre único
         check('nombre').custom(async (value, { req }) => {
-            const marca = await Marca.findOne({ nombre: value });
-            if (marca && (req.params.id !== marca._id.toString())) {
-                throw new Error('La marca ya está registrada');
+            const tipoP = await tipoProducto.findOne({ nombre: value });
+            if (tipoP && (req.params.id !== tipoP._id.toString())) {
+                throw new Error('El tipo de producto ya está registrado');
             }
         }),
 
@@ -31,4 +31,4 @@ const validationMarca = () => {
     ]
 }
 
-export default validationMarca
+export default validationTipoProducto

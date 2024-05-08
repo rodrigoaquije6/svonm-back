@@ -4,7 +4,7 @@ import Luna from "../models/Luna.js";
 const validationLuna = () => {
     return [
         check('material').notEmpty().withMessage('El nombre es obligario'),
-        check('material').matches(/^[A-Za-z\s]+$/).withMessage('El nombre no contiene números ni símbolos'),
+        check('material').matches(/^[A-Za-zÁ-Úá-ú\s]+$/).withMessage('El nombre no contiene números ni símbolos'),
 
         check('precio').notEmpty().withMessage('El precio es obligatorio'),
         check('precio').isFloat({ min: 0 }).withMessage('El precio debe ser mayor o igual a 0'),

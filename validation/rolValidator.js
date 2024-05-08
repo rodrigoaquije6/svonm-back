@@ -4,12 +4,12 @@ import Rol from "../models/Rol.js";
 const validationRol = () => {
     return [
         check('nombre').notEmpty().withMessage('El nombre del rol es obligatorio'),
-        check('nombre').matches(/^[A-Za-z\s]+$/).withMessage('El nombre del rol no contiene números ni simbolos'),
+        check('nombre').matches(/^[A-Za-zÁ-Úá-ú\s]+$/).withMessage('El nombre del rol no contiene números ni simbolos'),
 
         // Validación de nombre único
-        check('nombre').custom(async (value) => {
+        check('nombre').custom(async (value, { req }) => {
             const rol = await Rol.findOne({ nombre: value });
-            if (rol) {
+            if (rol && (req.params.id !== rol._id.toString())) {
                 throw new Error('El rol ya está registrado');
             }
         }),
