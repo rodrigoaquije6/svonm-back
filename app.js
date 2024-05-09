@@ -9,6 +9,7 @@ import marcaRoutes from "./routes/crear-marca.js";
 import monturaRoutes from "./routes/montura.js";
 import lunaRoutes from "./routes/luna.js"
 import tipoProductoRoutes from "./routes/tipoProducto.js"
+import lenteSolRoutes from "./routes/lenteSol.js"
 //import taskRoutes from "./routes/tasks.routes.js";
 
 import cors from "cors";
@@ -33,8 +34,9 @@ app.use("/api", rolRoutes);
 app.use("/api", trabajadorRoutes);
 app.use("/api", marcaRoutes);
 app.use("/api", monturaRoutes);
+app.use("/api", lenteSolRoutes);
 app.use("/api", lunaRoutes);
-app.use("/api", tipoProductoRoutes)
+app.use("/api", tipoProductoRoutes);
 
 //app.use("/api", taskRoutes);
 

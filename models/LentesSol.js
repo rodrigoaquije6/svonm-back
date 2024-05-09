@@ -1,15 +1,8 @@
-const mongoose = require('mongoose');
+import mongoose from "mongoose";
+import Producto from "./producto.model.js";
 
 const LentesSolSchema = mongoose.Schema({
-    marca: {
-        type: String,
-        required: true
-    },
-    género: {
-        type: String,
-        required: true
-    },
-    material: {
+    genero: {
         type: String,
         required: true
     },
@@ -21,11 +14,11 @@ const LentesSolSchema = mongoose.Schema({
         type: String,
         required: true
     },
-    colorLente: {
+    colorlente: {
         type: String,
         required: true
     },
-    proteccionUV: {
+    protuv: {
         type: String,
         required: true
     },
@@ -35,4 +28,5 @@ const LentesSolSchema = mongoose.Schema({
     }
 });
 
-module.exports = mongoose.model('LentesSol', LentesSolSchema);
+//module.exports = mongoose.model('LentesSol', LentesSolSchema);
+export default Producto.discriminator('LentesSol', LentesSolSchema);;
