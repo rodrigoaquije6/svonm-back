@@ -8,7 +8,7 @@ const productoSchema = new mongoose.Schema(
         trim: true,
         unique: true,
       },
-      tipoP: {
+      tipoProducto: {
         type: String,
         required: true,
         trim: true,

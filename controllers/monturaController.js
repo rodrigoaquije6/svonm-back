@@ -3,18 +3,18 @@ import Montura from "../models/Montura.js";
 export const crearMontura = async (req, res) => {
     try {
         // Extraer los datos de la montura del cuerpo de la solicitud
-        const { codigo, tipoP, nombre, precio, imagen, marca, color, género, forma  } = req.body;
+        const { codigo, tipoProducto, nombre, precio, imagen, marca, color, genero, forma  } = req.body;
 
         // Crear una nueva instancia de Montura con los datos proporcionados
         const nuevaMontura = new Montura({
             codigo,
-            tipoP,
+            tipoProducto,
             nombre,
             precio,
             imagen,
             marca,
             color,
-            género,
+            genero,
             forma
         });
 
@@ -33,7 +33,7 @@ export const crearMontura = async (req, res) => {
 export const actualizarMontura = async (req, res) => {
     try {
 
-        const { codigo, tipoP, nombre, precio, imagen, marca, color, género, forma  } = req.body;
+        const { codigo, tipoProducto, nombre, precio, imagen, marca, color, genero, forma  } = req.body;
         let montura = await Montura.findById(req.params.id);
 
         if (!montura) {
@@ -41,13 +41,13 @@ export const actualizarMontura = async (req, res) => {
         }
 
         montura.codigo = codigo,
-        montura.tipoP = tipoP,
+        montura.tipoProducto = tipoProducto,
         montura.nombre = nombre,
         montura.precio = precio,
         montura.imagen = imagen,
         montura.marca = marca,
         montura.color = color,
-        montura.género = género,
+        montura.genero = genero,
         montura.forma = forma
         
 

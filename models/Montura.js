@@ -8,7 +8,7 @@ const MonturaSchema = mongoose.Schema({
         required: true
     },
 
-    género: {
+    genero: {
         type: String,
         required: true
     },
