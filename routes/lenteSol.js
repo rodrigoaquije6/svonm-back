@@ -7,13 +7,14 @@ import {
     eliminarLenteSol
   } from "../controllers/lenteSolController.js";
 import { authRequired } from "../middlewares/validateToken.js";
+import validationLenteSol from "../validation/lenteSolValidator.js";
 
 const router = Router();
 
 //api/lenteSol
-router.post('/lenteSol', authRequired, crearLenteSol);
+router.post('/lenteSol', authRequired, validationLenteSol(), crearLenteSol);
 router.get('/lenteSol', authRequired, obtenerLentesSol);
-router.put('/lenteSol/:id', authRequired, actualizarLenteSol);
+router.put('/lenteSol/:id', authRequired, validationLenteSol(), actualizarLenteSol);
 router.delete('/lenteSol/:id', authRequired, eliminarLenteSol);
 router.get('/lenteSol/:id', authRequired, obtenerLentesSol);
 
