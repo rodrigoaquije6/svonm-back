@@ -16,6 +16,6 @@ router.post('/lenteSol', authRequired, validationLenteSol(), crearLenteSol);
 router.get('/lenteSol', authRequired, obtenerLentesSol);
 router.put('/lenteSol/:id', authRequired, validationLenteSol(), actualizarLenteSol);
 router.delete('/lenteSol/:id', authRequired, eliminarLenteSol);
-router.get('/lenteSol/:id', authRequired, obtenerLentesSol);
+router.get('/lenteSol/:id', authRequired, obtenerLenteSol);
 
 export default router;
