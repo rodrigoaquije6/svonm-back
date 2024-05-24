@@ -29,7 +29,7 @@ const validationMontura = () => {
         check('codigo').custom(async (value, { req }) => {
             const montura= await Montura.findOne({ codigo: value });
             if (montura && (req.params.id !== montura._id.toString())) {
-                throw new Error('La montura ya está registrada');
+                throw new Error('El producto ya está registrado');
             }
         }),
 

@@ -35,7 +35,7 @@ const validationLenteSol = () => {
         check('codigo').custom(async (value, { req }) => {
             const lenteSol= await LenteSol.findOne({ codigo: value });
             if (lenteSol && (req.params.id !== lenteSol._id.toString())) {
-                throw new Error('El lente de sol ya está registrado');
+                throw new Error('El producto ya está registrado');
             }
         }),
 
