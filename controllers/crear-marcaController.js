@@ -1,4 +1,4 @@
-const crearMarca = require("../models/crear-marca");
+const crearMarca = require("../models/Crear-marca");
 
 exports.crearMarca = async(req,res) => {
 try {
