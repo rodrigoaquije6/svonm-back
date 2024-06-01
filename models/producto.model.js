@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const productoSchema = new mongoose.Schema(
+const ProductoSchema = new mongoose.Schema(
     {
       codigo: {
         type: String,
@@ -9,9 +9,9 @@ const productoSchema = new mongoose.Schema(
         unique: true,
       },
       tipoProducto: {
-        type: String,
-        required: true,
-        trim: true,
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'TipoProducto',
+        required: true
       },
       nombre: {
         type: String,
@@ -25,17 +25,14 @@ const productoSchema = new mongoose.Schema(
         type: String,
       },
       marca: {
-        type: String,
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Marca',
         required: true
       },
       fechaCreacion: {
         type: Date,
         default: Date.now(),
       },
-    },
-    {
-      timestamps: true,
-    }
-  );
+  });
   
-  export default mongoose.model("Producto", productoSchema);
+  export default mongoose.model("Producto", ProductoSchema);

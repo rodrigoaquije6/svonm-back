@@ -1,7 +1,13 @@
 import mongoose from "mongoose";
-import Producto from "./producto.model.js";
+const { Schema } = mongoose;
 
 const LentesSolSchema = mongoose.Schema({
+
+    productoId: {
+        type: Schema.Types.ObjectId,
+        ref: "Producto",
+        required: true,
+    },
     genero: {
         type: String,
         required: true
@@ -28,5 +34,6 @@ const LentesSolSchema = mongoose.Schema({
     }
 });
 
+export default mongoose.model("LenteSol", LentesSolSchema);
 //module.exports = mongoose.model('LentesSol', LentesSolSchema);
-export default Producto.discriminator('LentesSol', LentesSolSchema);;
+//export default Producto.discriminator('LentesSol', LentesSolSchema);;
