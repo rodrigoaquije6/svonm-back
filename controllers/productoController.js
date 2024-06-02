@@ -3,6 +3,8 @@ import Montura from "../models/Montura.js";
 import LentesSol from "../models/LentesSol.js";
 import TipoProducto from "../models/TipoProducto.js";
 import Marca from "../models/Crear-marca.js";
+import Almacen from "../models/almacen.js";
+import Catalogo from "../models/catalogo.js";
 
 import mongoose from 'mongoose';
 
@@ -12,7 +14,7 @@ export const crearProducto = async (req, res) => {
     session.startTransaction();
 
     try {
-        const { codigo, tipoProducto, nombre, precio, imagen, marca, ...rest } = req.body;
+        const { codigo, tipoProducto, nombre, precio, imagen, marca, estado, ...rest } = req.body;
 
         // Obtener el documento del tipo de producto
         const tipoProductoDoc = await TipoProducto.findOne({ nombre: tipoProducto });
@@ -28,9 +30,25 @@ export const crearProducto = async (req, res) => {
             precio,
             imagen,
             marca: marcaDoc._id,
+            estado
         });
 
         await producto.save({ session });
+
+        // Crear el documento en Almacen con stock inicial de 0 fuera de la transacción
+        const almacen = new Almacen({
+            producto: producto._id,
+            stock: 0
+        });
+
+        await almacen.save();
+
+        const catalogo = new Catalogo({
+            producto: producto._id,
+            estado: 'Activo'
+        });
+
+        await catalogo.save({ session });
 
         let productoEspecifico;
 
@@ -48,15 +66,15 @@ export const crearProducto = async (req, res) => {
         }
 
         if (productoEspecifico) {
-            await productoEspecifico.save({session});
+            await productoEspecifico.save({ session });
         }
 
         await session.commitTransaction();
         session.endSession();
 
-        res.status(201).json({ producto, productoEspecifico });
+        res.status(201).json({ producto, productoEspecifico, almacen, catalogo });
 
-    }catch (error) {
+    } catch (error) {
         console.log(error);
         res.status(500).send('Hubo un error');
     }

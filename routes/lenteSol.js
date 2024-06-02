@@ -1,4 +1,4 @@
-import { Router } from "express";
+/*import { Router } from "express";
 import {
     crearLenteSol,
     obtenerLenteSol,
@@ -18,4 +18,4 @@ router.put('/lenteSol/:id', authRequired, validationLenteSol(), actualizarLenteS
 router.delete('/lenteSol/:id', authRequired, eliminarLenteSol);
 router.get('/lenteSol/:id', authRequired, obtenerLenteSol);
 
-export default router;
+export default router;*/

@@ -1,4 +1,4 @@
-import Montura from "../models/Montura.js";
+/*import Montura from "../models/Montura.js";
 
 export const crearMontura = async (req, res) => {
     try {
@@ -105,4 +105,4 @@ export const eliminarMontura = async (req, res) => {
         console.log(error);
         res.status(500).send('Hubo un error');
     }
-}
+}*/

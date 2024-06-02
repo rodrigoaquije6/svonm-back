@@ -1,4 +1,4 @@
-import LentesSol from "../models/LentesSol.js";
+/*import LentesSol from "../models/LentesSol.js";
 import LenteSol from "../models/LentesSol.js";
 
 export const crearLenteSol = async (req, res) => {
@@ -109,4 +109,4 @@ export const eliminarLenteSol = async (req, res) => {
         console.log(error);
         res.status(500).send('Hubo un error');
     }
-}
+}*/

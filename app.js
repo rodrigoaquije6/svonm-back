@@ -6,10 +6,8 @@ import authRoutes from "./routes/auth.routes.js";
 import rolRoutes from "./routes/rol.js";
 import trabajadorRoutes from "./routes/trabajador.js";
 import marcaRoutes from "./routes/crear-marca.js";
-import monturaRoutes from "./routes/montura.js";
 import lunaRoutes from "./routes/luna.js"
 import tipoProductoRoutes from "./routes/tipoProducto.js"
-import lenteSolRoutes from "./routes/lenteSol.js"
 import producto from "./routes/producto.js"
 //import taskRoutes from "./routes/tasks.routes.js";
 
@@ -34,8 +32,8 @@ app.use("/api", authRoutes);
 app.use("/api", rolRoutes);
 app.use("/api", trabajadorRoutes);
 app.use("/api", marcaRoutes);
-app.use("/api", monturaRoutes);
-app.use("/api", lenteSolRoutes);
+//app.use("/api", monturaRoutes);
+//app.use("/api", lenteSolRoutes);
 app.use("/api", lunaRoutes);
 app.use("/api", tipoProductoRoutes);
 app.use("/api", producto);
