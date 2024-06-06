@@ -1,14 +1,16 @@
 import express from "express";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
-import {URL} from "./config/config.js";
+import { URL } from "./config/config.js";
 import authRoutes from "./routes/auth.routes.js";
 import rolRoutes from "./routes/rol.js";
 import trabajadorRoutes from "./routes/trabajador.js";
 import marcaRoutes from "./routes/crear-marca.js";
-import lunaRoutes from "./routes/luna.js"
-import tipoProductoRoutes from "./routes/tipoProducto.js"
-import producto from "./routes/producto.js"
+import lunaRoutes from "./routes/luna.js";
+import tipoProductoRoutes from "./routes/tipoProducto.js";
+import producto from "./routes/producto.js";
+import catalogo from "./routes/catalogo.js";
+import almacen from "./routes/almacen.js"
 //import taskRoutes from "./routes/tasks.routes.js";
 
 import cors from "cors";
@@ -37,6 +39,8 @@ app.use("/api", marcaRoutes);
 app.use("/api", lunaRoutes);
 app.use("/api", tipoProductoRoutes);
 app.use("/api", producto);
+app.use("/api", catalogo);
+app.use("/api", almacen);
 
 //app.use("/api", taskRoutes);
 
