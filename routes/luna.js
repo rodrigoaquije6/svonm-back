@@ -11,10 +11,10 @@ import validationLuna from "../validation/lunaValidator.js";
 
 const router = Router();
 
-router.post('/luna', authRequired, validationLuna(), crearLuna);
-router.get('/luna', authRequired, obtenerLunas);
-router.put('/luna/:id', authRequired, validationLuna(), actualizarLuna);
-router.get('/luna/:id', authRequired, obtenerLuna);
-router.delete('/luna/:id', authRequired, eliminarLuna);
+  router.post('/luna', authRequired, validationLuna(), crearLuna);
+  router.get('/luna', authRequired, obtenerLunas);
+  router.put('/luna/:id', authRequired, validationLuna(), actualizarLuna);
+  router.get('/luna/:id', authRequired, obtenerLuna);
+  router.delete('/luna/:id', authRequired, eliminarLuna);
 
 export default router;
