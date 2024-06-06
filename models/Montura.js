@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
-import Producto from "./producto.model.js";
+import { ProductModel } from "./producto.model.js";
 
-const MonturaSchema = mongoose.Schema({
+const MonturaSchema = ProductModel.discriminator("Montura", new mongoose.Schema({
 
     color: {
         type: String,
@@ -18,8 +18,8 @@ const MonturaSchema = mongoose.Schema({
         required: true
     },
 
-});
+}));
 
 
 //module.exports = mongoose.model('Montura', MonturaSchema);
-export default Producto.discriminator('Montura', MonturaSchema);;
+export default MonturaSchema;
