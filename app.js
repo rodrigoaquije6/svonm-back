@@ -11,7 +11,7 @@ import tipoProductoRoutes from "./routes/tipoProducto.js";
 import producto from "./routes/producto.js";
 import catalogo from "./routes/catalogo.js";
 import almacen from "./routes/almacen.js"
-import tipoLunaRoutes from "./routes/tipoLuna.js"
+
 
 //import taskRoutes from "./routes/tasks.routes.js";
 
@@ -43,7 +43,7 @@ app.use("/api", tipoProductoRoutes);
 app.use("/api", producto);
 app.use("/api", catalogo);
 app.use("/api", almacen);
-app.use("/api", tipoLunaRoutes);
+
 
 
 //app.use("/api", taskRoutes);
