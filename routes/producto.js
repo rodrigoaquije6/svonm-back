@@ -3,7 +3,8 @@ import {
     crearProducto,
     obtenerProductos,
     obtenerProducto,
-    actualizarProducto
+    actualizarProducto,
+    actualizarEstadoProducto
   } from "../controllers/productoController.js";
 import { authRequired } from "../middlewares/validateToken.js";
 
@@ -13,6 +14,7 @@ const router = Router();
 router.post('/producto', authRequired, crearProducto);
 router.get('/producto', authRequired, obtenerProductos);
 router.put('/producto/:id', authRequired, actualizarProducto);
+router.put('/producto/estado/:id', authRequired, actualizarEstadoProducto);
 //router.delete('/montura/:id', authRequired, eliminarMontura);
 router.get('/producto/:id', authRequired, obtenerProducto);
 

@@ -28,6 +28,14 @@ const ProductoSchema = new mongoose.Schema(
       ref: 'Marca',
       required: true
     },
+    stock: {
+      type: Number,
+      default: 0,
+    },
+    stockMinimo: {
+      type: Number,
+      default: 2,
+    },
     estado: {
       type: String,
       default: 'Activo',// Atributo estado con valor por defecto 'Activo'

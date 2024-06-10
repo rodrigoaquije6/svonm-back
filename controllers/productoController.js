@@ -3,13 +3,11 @@ import Montura from "../models/Montura.js";
 import LentesSol from "../models/LentesSol.js";
 import TipoProducto from "../models/TipoProducto.js";
 import Marca from "../models/Crear-marca.js";
-import Almacen from "../models/almacen.js";
-import Catalogo from "../models/catalogo.js";
 
 export const crearProducto = async (req, res) => {
 
     try {
-        const { codigo, tipoProducto, nombre, precio, imagen, marca, estado, ...rest } = req.body;
+        const { codigo, tipoProducto, nombre, precio, imagen, marca, stock, stockMinimo, estado, ...rest } = req.body;
 
         // Obtener el documento del tipo de producto
         const tipoProductoDoc = await TipoProducto.findOne({ nombre: tipoProducto });
@@ -36,25 +34,6 @@ export const crearProducto = async (req, res) => {
 
         await producto.save();
 
-        // Obtener el ID del producto creado
-        const productoId = producto._id;
-
-        // Crear el documento en Almacen con el ID del producto y stock inicial de 0
-        const almacen = new Almacen({
-            producto: productoId,
-            stock: 0
-        });
-
-        await almacen.save();
-
-        // Crear el documento en Catalogo con el ID del producto y estado 'Activo'
-        const catalogo = new Catalogo({
-            producto: productoId,
-            estado: 'Activo'
-        });
-
-        await catalogo.save();
-
         let productoEspecifico;
 
         // Crear el tipo específico de producto
@@ -74,7 +53,7 @@ export const crearProducto = async (req, res) => {
             await productoEspecifico.save();
         }
 
-        res.status(201).json({ producto, productoEspecifico, catalogo, almacen });
+        res.status(201).json({ producto, productoEspecifico});
 
     } catch (error) {
         console.log(error);
@@ -208,5 +187,24 @@ export const actualizarProducto = async (req, res) => {
     } catch (error) {
         console.error('Hubo un error al actualizar el producto:', error);
         res.status(500).send('Hubo un error al actualizar el producto');
+    }
+};
+
+export const actualizarEstadoProducto = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { estado } = req.body;
+
+        // Buscar el producto por su ID
+        const producto = await Producto.findByIdAndUpdate(id, { estado }, { new: true });
+
+        if (!producto) {
+            return res.status(404).json({ msg: 'Producto no encontrado' });
+        }
+
+        res.json({ msg: 'Estado del producto actualizado correctamente', producto });
+    } catch (error) {
+        console.error('Hubo un error al actualizar el estado del producto:', error);
+        res.status(500).send('Hubo un error al actualizar el estado del producto');
     }
 };
