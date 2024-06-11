@@ -12,6 +12,10 @@ import producto from "./routes/producto.js";
 import catalogo from "./routes/catalogo.js";
 import almacen from "./routes/almacen.js"
 import cliente from "./routes/cliente.js";
+import tratamiento from "./routes/tratamiento.js";
+import tipoLuna from "./routes/tipoLuna.js";
+import venta from "./routes/venta.js";
+
 //import taskRoutes from "./routes/tasks.routes.js";
 
 import cors from "cors";
@@ -43,6 +47,9 @@ app.use("/api", producto);
 app.use("/api", catalogo);
 app.use("/api", almacen);
 app.use("/api", cliente);
+app.use("/api", tratamiento);
+app.use("/api", tipoLuna);
+app.use("/api", venta);
 
 //app.use("/api", taskRoutes);
 

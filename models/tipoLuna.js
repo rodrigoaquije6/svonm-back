@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
-const LunaSchema = mongoose.Schema({
-    material: {
+const TipoLunaSchema = mongoose.Schema({
+    nombre: {
         type: String,
         required: true
     },
@@ -20,5 +20,4 @@ const LunaSchema = mongoose.Schema({
     }
 });
 
-//module.exports = mongoose.model('Luna', LunaSchema);
-export default mongoose.model("Luna", LunaSchema);
+export default mongoose.model("TipoLuna", TipoLunaSchema);

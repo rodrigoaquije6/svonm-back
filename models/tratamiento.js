@@ -1,9 +1,10 @@
 import mongoose from "mongoose";
 
-const LunaSchema = mongoose.Schema({
-    material: {
+const TratamientoSchema = mongoose.Schema({
+
+    nombre: {
         type: String,
-        required: true
+        required: true,
     },
     precio: {
         type: Number,
@@ -20,5 +21,4 @@ const LunaSchema = mongoose.Schema({
     }
 });
 
-//module.exports = mongoose.model('Luna', LunaSchema);
-export default mongoose.model("Luna", LunaSchema);
+export default mongoose.model("Tratamiento", TratamientoSchema);
