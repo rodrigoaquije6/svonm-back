@@ -3,6 +3,8 @@ import DetalleVenta from "../models/detalleVenta.js";
 import Producto from "../models/producto.model.js";
 import Venta from "../models/venta.js";
 
+import { obtenerProducto } from '../controllers/productoController.js'
+
 const obtenerProximoCodigoVenta = async () => {
   try {
     // Buscar la última venta en la base de datos

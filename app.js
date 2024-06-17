@@ -14,7 +14,7 @@ import almacen from "./routes/almacen.js"
 import cliente from "./routes/cliente.js";
 import tratamiento from "./routes/tratamiento.js";
 import tipoLuna from "./routes/tipoLuna.js";
-import venta from "./routes/venta.js";
+import ventaRoutes from "./routes/venta.js";
 
 //import taskRoutes from "./routes/tasks.routes.js";
 
@@ -49,7 +49,7 @@ app.use("/api", almacen);
 app.use("/api", cliente);
 app.use("/api", tratamiento);
 app.use("/api", tipoLuna);
-app.use("/api", venta);
+app.use("/api", ventaRoutes);
 
 //app.use("/api", taskRoutes);
 

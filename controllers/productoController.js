@@ -29,6 +29,8 @@ export const crearProducto = async (req, res) => {
             precio,
             imagen,
             marca: marcaDoc._id,
+            stock,
+            stockMinimo,
             estado
         });
 
@@ -187,24 +189,5 @@ export const actualizarProducto = async (req, res) => {
     } catch (error) {
         console.error('Hubo un error al actualizar el producto:', error);
         res.status(500).send('Hubo un error al actualizar el producto');
-    }
-};
-
-export const actualizarEstadoProducto = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { estado } = req.body;
-
-        // Buscar el producto por su ID
-        const producto = await Producto.findByIdAndUpdate(id, { estado }, { new: true });
-
-        if (!producto) {
-            return res.status(404).json({ msg: 'Producto no encontrado' });
-        }
-
-        res.json({ msg: 'Estado del producto actualizado correctamente', producto });
-    } catch (error) {
-        console.error('Hubo un error al actualizar el estado del producto:', error);
-        res.status(500).send('Hubo un error al actualizar el estado del producto');
     }
 };
