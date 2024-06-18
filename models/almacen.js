@@ -1,12 +1,12 @@
 import mongoose from "mongoose";
+const { Schema } = mongoose;
 
 const AlmacenSchema = mongoose.Schema({
 
     producto: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: 'Producto',
         required: true,
-        unique: true,
     },
     stock: {
         type: Number,

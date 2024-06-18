@@ -3,7 +3,7 @@ import {
     crearProducto,
     obtenerProductos,
     obtenerProducto,
-    actualizarProducto
+    actualizarProducto,
   } from "../controllers/productoController.js";
 import { authRequired } from "../middlewares/validateToken.js";
 

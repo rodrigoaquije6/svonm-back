@@ -1,12 +1,12 @@
 import mongoose from "mongoose";
+const { Schema } = mongoose;
 
 const CatalogoSchema = mongoose.Schema({
 
     producto: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: 'Producto',
         required: true,
-        unique: true,
     },
     estado: {
         type: String,

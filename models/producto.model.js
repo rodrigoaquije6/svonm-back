@@ -6,7 +6,6 @@ const ProductoSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
-      unique: true,
     },
     tipoProducto: {
       type: mongoose.Schema.Types.ObjectId,
@@ -28,6 +27,14 @@ const ProductoSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Marca',
       required: true
+    },
+    stock: {
+      type: Number,
+      default: 0,
+    },
+    stockMinimo: {
+      type: Number,
+      default: 2,
     },
     estado: {
       type: String,
