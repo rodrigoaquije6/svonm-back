@@ -28,6 +28,11 @@ const ProductoSchema = new mongoose.Schema(
       ref: 'Marca',
       required: true
     },
+    proveedor: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Proveedor',
+      required: true
+    },
     stock: {
       type: Number,
       default: 0,

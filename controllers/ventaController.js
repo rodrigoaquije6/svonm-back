@@ -3,8 +3,6 @@ import DetalleVenta from "../models/detalleVenta.js";
 import Producto from "../models/producto.model.js";
 import Venta from "../models/venta.js";
 
-import { obtenerProducto } from '../controllers/productoController.js'
-
 const obtenerProximoCodigoVenta = async () => {
   try {
     // Buscar la última venta en la base de datos
@@ -103,7 +101,7 @@ export const crearVenta = async (req, res) => {
 export const obtenerVentas = async (req, res) => {
   try {
     // Obtener todas las ventas
-    const ventas = await Venta.find();
+    const ventas = await Venta.find().populate('idCliente').populate('idTrabajador');
 
     // Para cada venta, buscar sus detalles de venta correspondientes
     const ventasConDetalles = await Promise.all(ventas.map(async (venta) => {
@@ -128,7 +126,7 @@ export const obtenerVenta = async (req, res) => {
     const { id } = req.params;
 
     // Buscar la venta específica por su ID
-    const venta = await Venta.findById(id);
+    const venta = await Venta.findById(id).populate('idCliente').populate('idTrabajador');
 
     if (!venta) {
       return res.status(404).json({ message: 'Venta no encontrada' });

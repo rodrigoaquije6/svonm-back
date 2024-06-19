@@ -78,8 +78,8 @@ const VentaSchema = mongoose.Schema({
     },
     estado: {
         type: String,
-        default: 'Activo',// Atributo estado con valor por defecto 'Activo'
-        enum: ['Activo', 'Inactivo']// Opcional: restringe los valores posibles
+        default: 'En fabricación',
+        enum: ['En fabricación', 'En Tienda', 'Finalizado']
     },
     idCliente: {
         type: mongoose.Schema.Types.ObjectId,

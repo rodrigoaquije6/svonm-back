@@ -16,7 +16,8 @@ const TrabajadorSchema = mongoose.Schema({
     },
     estado: {
         type: String,
-        required: true
+        default: 'Activo',
+        enum: ['Activo', 'Inactivo']
     },
     fechaCreacion: {
         type: Date,

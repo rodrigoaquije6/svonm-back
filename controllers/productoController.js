@@ -2,12 +2,13 @@ import Producto from "../models/producto.model.js";
 import Montura from "../models/Montura.js";
 import LentesSol from "../models/LentesSol.js";
 import TipoProducto from "../models/TipoProducto.js";
+import Proveedor from "../models/proveedor.js"
 import Marca from "../models/Crear-marca.js";
 
 export const crearProducto = async (req, res) => {
 
     try {
-        const { codigo, tipoProducto, nombre, precio, imagen, marca, stock, stockMinimo, estado, ...rest } = req.body;
+        const { codigo, tipoProducto, nombre, precio, imagen, marca, proveedor, stock, stockMinimo, estado, ...rest } = req.body;
 
         // Obtener el documento del tipo de producto
         const tipoProductoDoc = await TipoProducto.findOne({ nombre: tipoProducto });
@@ -21,6 +22,12 @@ export const crearProducto = async (req, res) => {
             throw new Error('Marca no encontrada');
         }
 
+        // Obtener el documento del proveedor
+        const proveedorDoc = await Proveedor.findOne({ nombre: proveedor });
+        if (!proveedor) {
+            throw new Error('Proveedor no encontrado');
+        }
+
         // Crear el producto base
         const producto = new Producto({
             codigo,
@@ -29,6 +36,7 @@ export const crearProducto = async (req, res) => {
             precio,
             imagen,
             marca: marcaDoc._id,
+            proveedor: proveedorDoc._id,
             stock,
             stockMinimo,
             estado
@@ -65,7 +73,7 @@ export const crearProducto = async (req, res) => {
 
 export const obtenerProductos = async (req, res) => {
     try {
-        const productos = await Producto.find().populate('tipoProducto').populate('marca'); // Poblar tipoProducto y marca
+        const productos = await Producto.find().populate('tipoProducto').populate('marca').populate('proveedor'); //Poblar tipoProducto, marca y proveedor
         const productosConAtributosEspecificos = await Promise.all(productos.map(async (producto) => {
             let atributosEspecificos = {};
             if (producto.tipoProducto === 'Montura') {
@@ -84,7 +92,7 @@ export const obtenerProductos = async (req, res) => {
 
 export const obtenerProducto = async (req, res) => {
     try {
-        const producto = await Producto.findById(req.params.id).populate('tipoProducto').populate('marca'); // Poblar tipoProducto y marca
+        const producto = await Producto.findById(req.params.id).populate('tipoProducto').populate('marca').populate('proveedor'); //Poblar tipoProducto, marca y proveedor
 
         if (!producto) {
             return res.status(404).json({ msg: 'Producto no encontrado' });
@@ -118,18 +126,11 @@ export const obtenerProducto = async (req, res) => {
 export const actualizarProducto = async (req, res) => {
     try {
         const { id } = req.params;
-        const { tipoProducto, marca, ...restoActualizaciones } = req.body;
-
-        //console.log("ID del producto:", id);
-        //console.log('Datos recibidos:', req.body);
-
-        const producto = await Producto.findById(id).populate('tipoProducto').populate('marca');;
+        const { tipoProducto, marca, proveedor, ...restoActualizaciones } = req.body;
+        const producto = await Producto.findById(id).populate('tipoProducto').populate('marca').populate('proveedor');
         if (!producto) {
             return res.status(404).json({ msg: 'Producto no encontrado' });
         }
-
-        //console.log('Producto encontrado:', producto);
-
 
         // Buscar el ObjectId de la marca proporcionada
         const marcaEncontrada = await Marca.findOne({ nombre: marca });
@@ -137,18 +138,19 @@ export const actualizarProducto = async (req, res) => {
             return res.status(404).json({ msg: 'Marca no encontrada' });
         }
 
-        //console.log('Marca encontrada:', marcaEncontrada);
-
+        // Buscar el ObjectId de la marca proporcionada
+        const proveedorEncontrado = await Proveedor.findOne({ nombre: proveedor });
+        if (!proveedor) {
+            return res.status(404).json({ msg: 'Proveedor no encontrado' });
+        }
 
         // Actualizar los campos comunes
         Object.assign(producto, restoActualizaciones);
-        // Asignar el ObjectId de la marca al campo "marca" del producto
+        // Asignar el ObjectId de la marca al campo "marca" y el ObjectId del proveedor en el campo "proveedor" del producto 
+        producto.proveedor = proveedorEncontrado._id;
         producto.marca = marcaEncontrada._id;
         // Guardar los cambios en el producto
         await producto.save();
-
-        //console.log('Producto actualizado:', producto);
-
 
         let productoEspecifico;
         let especificoActualizado;
@@ -161,9 +163,7 @@ export const actualizarProducto = async (req, res) => {
                 console.log('Montura encontrada:', productoEspecifico);
                 Object.assign(productoEspecifico, restoActualizaciones);
                 especificoActualizado = await productoEspecifico.save();
-                //console.log('Montura actualizada:', especificoActualizado);
             } else {
-                //console.log('Montura no encontrada para este producto.');
             }
         } else if (producto.tipoProducto.nombre === 'Lentes de sol') {
             productoEspecifico = await LentesSol.findOne({ productoId: id });
@@ -171,9 +171,7 @@ export const actualizarProducto = async (req, res) => {
                 console.log('Lentes de sol encontrados:', productoEspecifico);
                 Object.assign(productoEspecifico, restoActualizaciones);
                 especificoActualizado = await productoEspecifico.save()
-                //console.log('Lentes de sol actualizados:', especificoActualizado);
             } else {
-                //console.log('Lentes de sol no encontrados para este producto.');
             }
         }
 
@@ -182,8 +180,6 @@ export const actualizarProducto = async (req, res) => {
             ...producto.toObject(),
             ...(especificoActualizado ? especificoActualizado.toObject() : {})
         };
-
-        //console.log('Producto completo:', productoCompleto);
 
         res.json(productoCompleto);
     } catch (error) {
