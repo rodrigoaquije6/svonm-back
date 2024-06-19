@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
 
 const TratamientoSchema = mongoose.Schema({
-
     nombre: {
         type: String,
         required: true,
