@@ -79,7 +79,7 @@ const VentaSchema = mongoose.Schema({
     estado: {
         type: String,
         default: 'En fabricación',
-        enum: ['En fabricación', 'En Tienda', 'Finalizado']
+        enum: ['En fabricación', 'En Tienda', 'Finalizada', 'Devuelto']
     },
     idCliente: {
         type: mongoose.Schema.Types.ObjectId,

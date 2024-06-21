@@ -17,7 +17,7 @@ import tipoLuna from "./routes/tipoLuna.js";
 import ventaRoutes from "./routes/venta.js";
 import proveedor from "./routes/proveedor.js";
 import ingreso from "./routes/ingreso.js";
-
+import devolucion from "./routes/devolucion.js"
 
 //import taskRoutes from "./routes/tasks.routes.js";
 
@@ -55,6 +55,7 @@ app.use("/api", tipoLuna);
 app.use("/api", ventaRoutes);
 app.use("/api", proveedor)
 app.use("/api", ingreso)
+app.use("/api", devolucion)
 
 //app.use("/api", taskRoutes);
 
