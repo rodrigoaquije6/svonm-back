@@ -187,3 +187,14 @@ export const actualizarProducto = async (req, res) => {
         res.status(500).send('Hubo un error al actualizar el producto');
     }
 };
+
+export const obtenerProductosPorProveedor = async (req, res) => {
+    try {
+        const { idProveedor } = req.params;
+        const productos = await Producto.find({ proveedor: idProveedor, estado: 'Activo' }).populate('proveedor');
+        res.json(productos);
+    } catch (error) {
+        console.error('Error al obtener productos por proveedor:', error);
+        res.status(500).send('Hubo un error');
+    }
+};
