@@ -15,6 +15,7 @@ export const register = async (req, res) => {
     password,
     fecha_nac,
     email,
+    isActive
   } = req.body;
 
   try {
@@ -32,7 +33,7 @@ export const register = async (req, res) => {
       password: passwordHash,
       fecha_nac,
       email,
-      isActive: true,
+      isActive,
     });
 
     const userFound = await User.findOne({ email });
@@ -110,15 +111,15 @@ export const profile = async (req, res) => {
 };
 //metodos RUD (sin create) para usuarios, probablemente se necesite un nuevo controller para ellos
 export const getUsers = async (req, res) => {
-  const page = req.query.page;
-  const limit = req.query.limit;
+  // const page = req.query.page;
+  // const limit = req.query.limit;
 
-  const startIndex = (page - 1) * limit;
-  const endIndex = page * limit;
+  // const startIndex = (page - 1) * limit;
+  // const endIndex = page * limit;
 
   const users = await User.find({ _id: { $ne: "651a425a3f2658512f3fad59" } });
-  const resultUsers = users.slice(startIndex, endIndex);
-  res.json(resultUsers);
+  //const resultUsers = users.slice(startIndex, endIndex);
+  res.json(users);
 };
 
 export const getUser = async (req, res) => {
