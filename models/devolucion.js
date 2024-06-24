@@ -8,6 +8,11 @@ const DevolucionSchema = new mongoose.Schema({
     },
     motivo: {
         type: String,
+        enum: ['Cambio', 'Reembolso'],
+        required: true
+    },
+    observacion: {
+        type: String,
         required: true
     },
     total: {
@@ -17,6 +22,11 @@ const DevolucionSchema = new mongoose.Schema({
     idVenta: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Venta',
+        required: true
+    },
+    idTrabajador: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Trabajador',
         required: true
     },
     fechaCreacion: {

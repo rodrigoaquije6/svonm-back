@@ -31,7 +31,9 @@ export const crearDevolucion = async (req, res) => {
         const {
             idVenta,
             motivo,
+            observacion,
             total,
+            idTrabajador,
             productosDevolucion
         } = req.body;
 
@@ -45,8 +47,10 @@ export const crearDevolucion = async (req, res) => {
         const devolucion = new Devolucion({
             codigo: codigoDevolucion,
             motivo,
+            observacion,
             total,
-            idVenta
+            idVenta,
+            idTrabajador
         });
 
         const savedDevolucion = await devolucion.save();
@@ -55,7 +59,6 @@ export const crearDevolucion = async (req, res) => {
         const detallesDevolucionPromises = productosDevolucion.map(async producto => {
             const detalleDevolucion = new DetalleDevolucion({     
                 cantidad: producto.cantidad,
-                total: producto.total,
                 idDevolucion: savedDevolucion._id,
                 idProducto: producto._id,
             });
@@ -69,8 +72,12 @@ export const crearDevolucion = async (req, res) => {
 
         await Promise.all(detallesDevolucionPromises);
 
-        // Actualizar el estado de la venta a "Devuelto"
-        venta.estado = 'Devuelto';
+        // Actualizar el estado de la venta según el motivo de la devolución
+        if (motivo === 'Cambio') {
+            venta.estado = 'Cambio Solicitado';
+        } else if (motivo === 'Reembolso') {
+            venta.estado = 'Reembolsada';
+        }
         await venta.save();
 
         res.status(201).json({ message: 'Devolución creada con éxito', devolucion: savedDevolucion });
@@ -83,7 +90,7 @@ export const crearDevolucion = async (req, res) => {
 export const obtenerDevoluciones = async (req, res) => {
     try {
         // Obtener todas las devoluciones
-        const devoluciones = await Devolucion.find().populate('idVenta');
+        const devoluciones = await Devolucion.find().populate('idVenta').populate('idTrabajador');
 
         // Para cada devolución, buscar sus detalles de devolución correspondientes
         const devolucionesConDetalles = await Promise.all(devoluciones.map(async (devolucion) => {
@@ -106,7 +113,7 @@ export const obtenerDevolucion = async (req, res) => {
         const { id } = req.params;
 
         // Buscar la devolución específica por su ID
-        const devolucion = await Devolucion.findById(id).populate('idVenta');
+        const devolucion = await Devolucion.findById(id).populate('idVenta').populate('idTrabajador');
 
         if (!devolucion) {
             return res.status(404).json({ message: 'Devolución no encontrada' });

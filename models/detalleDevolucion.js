@@ -5,10 +5,6 @@ const DetalleDevolucionSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
-    total: {
-        type: Number,
-        required: true
-    },
     idProducto: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Producto',
