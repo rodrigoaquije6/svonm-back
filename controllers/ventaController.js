@@ -4,112 +4,14 @@ import Producto from "../models/producto.model.js";
 import Venta from "../models/venta.js";
 import Cliente from "../models/cliente.js"
 import nodemailer from 'nodemailer';
-
+import fs from 'fs-extra';
+import path from 'path';
+import pdfkit from 'pdfkit';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
-import fs from 'fs/promises';
-
-const generarContratoPDF = async (venta, detallesVenta, detallesTratamiento) => {
-  try {
-    const pdfDoc = await PDFDocument.create();
-    const page = pdfDoc.addPage([600, 700]);
-    const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
-
-    const fechaCreacion = new Date(venta.fechaCreacion);
-    const fechaFormateada = `${fechaCreacion.getDate()}/${fechaCreacion.getMonth() + 1}/${fechaCreacion.getFullYear()}`;
-
-    let yPosition = 650;
-
-    const textoEstatico = `
-      ¡Contrato Digital de Venta!
-
-      Código de Venta: ${venta.codigo}
-      Cliente: ${venta.idCliente.nombres} ${venta.idCliente.apellidos}
-      Fecha de Creación: ${fechaFormateada}
-
-      Detalles de la Venta:
-      - Total: S/. ${venta.total}
-      - A Cuenta: S/. ${venta.aCuenta}
-      - Saldo: S/. ${venta.saldo}
-
-      Estado: ${venta.estado}
-    `;
-
-    page.drawText(textoEstatico, {
-      x: 50,
-      y: yPosition,
-      size: 12,
-      font: helveticaFont,
-      color: rgb(0, 0, 0),
-    });
-
-    yPosition -= 180;
-
-    page.drawText('Productos:', {
-      x: 50,
-      y: yPosition,
-      size: 12,
-      font: helveticaFont,
-      color: rgb(0, 0, 0),
-    });
-
-    yPosition -= 20;
-
-    for (const detalle of detallesVenta) {
-      const productoInfo = `
-        - Producto: ${detalle.idProducto.nombre}
-        - Cantidad: ${detalle.cantidad}
-        - Total: S/. ${detalle.total}
-      `;
-
-      page.drawText(productoInfo, {
-        x: 50,
-        y: yPosition,
-        size: 10,
-        font: helveticaFont,
-        color: rgb(0, 0, 0),
-      });
-
-      yPosition -= 40;
-    }
-
-    page.drawText('Tratamientos:', {
-      x: 50,
-      y: yPosition,
-      size: 12,
-      font: helveticaFont,
-      color: rgb(0, 0, 0),
-    });
-
-    yPosition -= 20;
-
-    for (const tratamiento of detallesTratamiento) {
-      const tratamientoInfo = `
-        - Tratamiento: ${tratamiento.idTratamiento.nombre}
-      `;
-
-      page.drawText(tratamientoInfo, {
-        x: 50,
-        y: yPosition,
-        size: 10,
-        font: helveticaFont,
-        color: rgb(0, 0, 0),
-      });
-
-      yPosition -= 20;
-    }
-
-    const pdfBytes = await pdfDoc.save();
-    return pdfBytes;
-  } catch (error) {
-    console.error('Error al generar el contrato PDF', error);
-    throw error;
-  }
-};
 
 export const descargarContratoPDF = async (req, res) => {
   try {
     const { id } = req.params;
-
     const venta = await Venta.findById(id).populate('idCliente').populate('idTrabajador');
 
     if (!venta) {
@@ -119,14 +21,53 @@ export const descargarContratoPDF = async (req, res) => {
     const detallesVenta = await DetalleVenta.find({ idVenta: venta._id }).populate('idProducto');
     const detallesTratamiento = await DetalleTratamiento.find({ idVenta: venta._id }).populate('idTratamiento');
 
-    const pdfBytes = await generarContratoPDF(venta, detallesVenta, detallesTratamiento);
+    const doc = new pdfkit();
 
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename=${venta.codigo}_contrato.pdf`);
+    // Crear el contenido del PDF
+    doc.text(`Contrato de Venta - ${venta.codigo}`);
+    doc.text(`Cliente: ${venta.idCliente.nombres} ${venta.idCliente.apellidos}`);
+    doc.text(`Trabajador: ${venta.idTrabajador.nombre}`);
+    doc.text(`Fecha de Creación: ${new Date(venta.fechaCreacion).toLocaleDateString()}`);
+    doc.text(`Estado: ${venta.estado}`);
 
-    res.send(pdfBytes);
+    doc.text(`\nDetalles de la Venta:`);
+    detallesVenta.forEach((detalle) => {
+      doc.text(`Producto: ${detalle.idProducto.nombre} - Cantidad: ${detalle.cantidad} - Total: S/.${detalle.total}`);
+    });
+
+    doc.text(`\nDetalles de los Tratamientos:`);
+    detallesTratamiento.forEach((detalle) => {
+      doc.text(`Tratamiento: ${detalle.idTratamiento.nombre}`);
+    });
+
+    const fileName = `contrato-${venta.codigo}-${venta.idCliente.apellidos}.pdf`;
+    const filePath = path.join(process.cwd(), 'temp', fileName);
+
+    // Crear la carpeta temporal si no existe
+    await fs.ensureDir(path.dirname(filePath));
+
+    // Crear el archivo PDF
+    doc.pipe(fs.createWriteStream(filePath));
+    doc.end();
+
+    // Enviar el archivo como respuesta al cliente
+    res.setHeader('Content-disposition', `attachment; filename="${fileName}"`);
+    res.setHeader('Content-type', 'application/pdf');
+    const readStream = fs.createReadStream(filePath);
+    readStream.pipe(res);
+
+    readStream.on('end', () => {
+      // Borrar el archivo temporal después de enviarlo al cliente
+      fs.unlink(filePath, (err) => {
+        if (err) {
+          console.error('Error al borrar el archivo temporal', err);
+        }
+      });
+    });
+
   } catch (error) {
-    res.status(500).json({ message: 'Error al generar el contrato PDF', error });
+    console.error('Error en descargarContratoPDF:', error);
+    res.status(500).json({ message: 'Error interno al descargar el contrato' });
   }
 };
 
