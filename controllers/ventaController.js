@@ -5,10 +5,12 @@ import Venta from "../models/venta.js";
 import Cliente from "../models/cliente.js"
 import Devolucion from "../models/devolucion.js";
 import DetalleDevolucion from "../models/detalleDevolucion.js";
+import Tratamiento from "../models/tratamiento.js";
 import nodemailer from 'nodemailer';
 import fs from 'fs-extra';
 import path from 'path';
 import pdfkit from 'pdfkit';
+import puppeteer from 'puppeteer';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 
 export const descargarContratoPDF = async (req, res) => {
@@ -22,122 +24,126 @@ export const descargarContratoPDF = async (req, res) => {
 
     const detallesVenta = await DetalleVenta.find({ idVenta: venta._id }).populate('idProducto');
     const detallesTratamiento = await DetalleTratamiento.find({ idVenta: venta._id }).populate('idTratamiento');
+    const todosTratamientos = await Tratamiento.find();
 
-    const doc = new pdfkit();
+    const doc = new pdfkit({ size: 'A4' });
 
     const fileName = `contrato-${venta.codigo}-${venta.idCliente.apellidos}.pdf`;
     const filePath = path.join(process.cwd(), 'temp', fileName);
 
     await fs.mkdir(path.dirname(filePath), { recursive: true });
 
-    doc.font('Helvetica').fontSize(12);
-
-    // Encabezado
-    doc.fontSize(18).text('Contrato de Venta', { align: 'center' });
-    doc.moveDown();
-    doc.fontSize(14).text(`Código: ${venta.codigo}`, { align: 'right' });
-    doc.moveDown(2);
-
-    // Información del Cliente
-    doc.fontSize(12).text(`CLIENTE`);
-    doc.moveDown(0.5);
-    doc.text(`DNI: ${venta.idCliente.dni}`);
-    doc.text(`Nombres: ${venta.idCliente.nombres}`);
-    doc.text(`Apellidos: ${venta.idCliente.apellidos}`);
-    doc.text(`Celular: ${venta.idCliente.celular}`);
-    doc.text(`Direccion: ${venta.idCliente.direccion}`);
-    doc.text(`Correo Electronico: ${venta.idCliente.correo}`);
-    doc.moveDown(1);
-
-    // Información de los Ojos
-    doc.text(`Ojo Derecho`);
-    doc.text(`Esfera: ${venta.oDEsfera}`);
-    doc.text(`Cilindro: ${venta.oDCilindro}`);
-    doc.text(`Eje: ${venta.oDEje}`);
-    doc.text(`A/V Lejos: ${venta.oDAvLejos}`);
-    doc.text(`A/V Cerca: ${venta.oDAvCerca}`);
-    doc.text(`Add: ${venta.oDAdd}`);
-    doc.text(`Altura: ${venta.oDAltura}`);
-    doc.text(`Curva: ${venta.oDCurva}`);
-    doc.text(`DIP Lejos: ${venta.dipLejos}`);
-    doc.text(`DIP Cerca: ${venta.dipCerca}`);
-    doc.moveDown(1);
-
-    doc.text(`Ojo Izquierdo`);
-    doc.text(`Esfera: ${venta.oIEsfera}`);
-    doc.text(`Cilindro: ${venta.oICilindro}`);
-    doc.text(`Eje: ${venta.oIEje}`);
-    doc.text(`A/V Lejos: ${venta.oIAvLejos}`);
-    doc.text(`A/V Cerca: ${venta.oIAvCerca}`);
-    doc.text(`Add: ${venta.oIAdd}`);
-    doc.text(`Altura: ${venta.oIAltura}`);
-    doc.text(`Curva: ${venta.oICurva}`);
-    doc.moveDown(1);
-
-    // Material de Luna
-    doc.text(`Material Luna: ${venta.idMaterialLuna}`);
-    doc.moveDown(1);
-
-    // Detalles de Venta
-    doc.fontSize(14).text('Detalles de Venta', { underline: true });
-    doc.moveDown();
-    doc.fontSize(12);
-    detallesVenta.forEach((detalle) => {
-      doc.text(`Producto: ${detalle.idProducto.nombre}`);
-      doc.text(`Código: ${detalle.idProducto.codigo}`);
-      doc.text(`Precio: ${detalle.idProducto.precio}`);
-      doc.text(`Stock: ${detalle.idProducto.stock}`);
-      doc.text(`Cantidad: ${detalle.cantidad}`);
-      doc.text(`Total: ${detalle.total}`);
-      doc.moveDown();
-    });
-
-    // Tratamientos
-    doc.fontSize(14).text('Tratamientos', { underline: true });
-    doc.moveDown();
-    doc.fontSize(12);
-    detallesTratamiento.forEach((detalle) => {
-      doc.text(`Tratamiento: ${detalle.idTratamiento.nombre}`);
-      doc.moveDown();
-    });
-
-    // Observaciones
-    doc.fontSize(14).text('Observaciones', { underline: true });
-    doc.moveDown();
-    doc.fontSize(12).text(venta.observacion);
-    doc.moveDown(2);
-
-    // Información del Trabajador
-    doc.fontSize(12).text(`Vendedor(a): ${venta.idTrabajador.nombre}`);
-    doc.moveDown(2);
-
-    // Montos
-    doc.fontSize(12).text(`TOTAL (S/.): ${venta.total}`);
-    doc.text(`A CUENTA (S/.): ${venta.aCuenta}`);
-    doc.text(`SALDO (S/.): ${venta.saldo}`);
-    doc.moveDown(2);
-
-    // Finalización del documento
-    doc.end();
-
     const stream = fs.createWriteStream(filePath);
     doc.pipe(stream);
+
+    // Encabezado
+    doc.font('Helvetica').fontSize(18).text('Óptica NUEVO MUNDO', { align: 'center' });
+    doc.fontSize(10).text('Av. Universitaria Norte Mz L1 Lote 8', { align: 'center' });
+    doc.text('A.H. Daniel Alcides Carrión', { align: 'center' });
+    doc.text('Los Olivos', { align: 'center' });
+    doc.text('Teléfono: 01 6788125 / 994648863', { align: 'center' });
+    doc.moveDown(1);
+
+    // Título del contrato
+    doc.fontSize(14).text('CONTRATO', { align: 'center' });
+    doc.fontSize(12).text(`Número: ${venta.codigo}`, { align: 'right' });
+    doc.text(`Fecha: ${new Date(venta.fecha).toLocaleDateString()}`, { align: 'right' });
+    doc.moveDown(1);
+
+    // Información de los ojos
+    doc.fontSize(12).text('INFORMACIÓN DE LOS OJOS', { underline: true });
+    doc.moveDown(0.5);
+
+    const column1X = 50;
+    const column2X = 300;
+    const colWidth = 100;
+
+    // Tabla de información de los ojos
+    doc.text('Ojo', column1X, doc.y);
+    doc.text('Esfera', column1X + colWidth, doc.y);
+    doc.text('Cilindro', column1X + colWidth * 2, doc.y);
+    doc.text('Eje', column1X + colWidth * 3, doc.y);
+    doc.text('A/V Lejos', column1X + colWidth * 4, doc.y);
+    doc.text('A/V Cerca', column1X + colWidth * 5, doc.y);
+    doc.text('Add', column2X, doc.y);
+    doc.text('Altura', column2X + colWidth, doc.y);
+    doc.text('Curva', column2X + colWidth * 2, doc.y);
+    doc.moveDown(0.5);
+
+    // Datos de los ojos
+    const ojoDerechoY = doc.y;
+    doc.text('Derecho', column1X, ojoDerechoY);
+    doc.text(venta.oDEsfera.toString(), column1X + colWidth, ojoDerechoY);
+    doc.text(venta.oDCilindro.toString(), column1X + colWidth * 2, ojoDerechoY);
+    doc.text(venta.oDEje.toString(), column1X + colWidth * 3, ojoDerechoY);
+    doc.text(venta.oDAvLejos.toString(), column1X + colWidth * 4, ojoDerechoY);
+    doc.text(venta.oDAvCerca.toString(), column1X + colWidth * 5, ojoDerechoY);
+    doc.text(venta.oDAdd.toString(), column2X, ojoDerechoY);
+    doc.text(venta.oDAltura.toString(), column2X + colWidth, ojoDerechoY);
+    doc.text(venta.oDCurva.toString(), column2X + colWidth * 2, ojoDerechoY);
+
+    const ojoIzquierdoY = doc.y;
+    doc.text('Izquierdo', column1X, ojoIzquierdoY);
+    doc.text(venta.oIEsfera.toString(), column1X + colWidth, ojoIzquierdoY);
+    doc.text(venta.oICilindro.toString(), column1X + colWidth * 2, ojoIzquierdoY);
+    doc.text(venta.oIEje.toString(), column1X + colWidth * 3, ojoIzquierdoY);
+    doc.text(venta.oIAvLejos.toString(), column1X + colWidth * 4, ojoIzquierdoY);
+    doc.text(venta.oIAvCerca.toString(), column1X + colWidth * 5, ojoIzquierdoY);
+    doc.text(venta.oIAdd.toString(), column2X, ojoIzquierdoY);
+    doc.text(venta.oIAltura.toString(), column2X + colWidth, ojoIzquierdoY);
+    doc.text(venta.oICurva.toString(), column2X + colWidth * 2, ojoIzquierdoY);
+    doc.moveDown(1);
+
+    // Tratamientos
+    doc.fontSize(12).text('TRATAMIENTOS', { underline: true });
+    doc.moveDown(0.5);
+
+    // Lista de tratamientos
+    const tratamientos = todosTratamientos.map(tratamiento => tratamiento.nombre);
+    doc.list(tratamientos, { bulletRadius: 2 });
+
+    // Observaciones y montos
+    doc.moveDown(1);
+    doc.fontSize(12).text('OBSERVACIONES', { underline: true });
+    doc.moveDown(0.5);
+    doc.text(venta.observacion || 'N/A');
+    doc.moveDown(1);
+
+    doc.fontSize(12).text('MONTOS', { underline: true });
+    doc.moveDown(0.5);
+    doc.text(`Total: S/. ${venta.total.toFixed(2)}`);
+    doc.text(`A cuenta: S/. ${venta.aCuenta.toFixed(2)}`);
+    doc.text(`Saldo: S/. ${venta.saldo.toFixed(2)}`);
+    doc.moveDown(1);
+
+    // Información del trabajador
+    doc.fontSize(12).text('INFORMACIÓN DEL TRABAJADOR', { underline: true });
+    doc.moveDown(0.5);
+    doc.text(`Vendedor(a): ${venta.idTrabajador.nombre}`);
+    doc.moveDown(2);
+
+    // Pie de página
+    doc.fontSize(10).text('Pasados los 30 días, no hay lugar a reclamo.', { align: 'center' });
+    doc.text('La lámpara del cuerpo es el ojo; así que, si tu ojo es bueno, todo el');
+
+    doc.end();
 
     stream.on('finish', () => {
       res.download(filePath, fileName, async (err) => {
         if (err) {
-          console.error('Error downloading the file:', err);
+          console.error('Error al descargar el archivo:', err);
+          res.status(500).json({ message: 'Error al descargar el archivo PDF' });
         } else {
           try {
             await fs.unlink(filePath);
           } catch (err) {
-            console.error('Error deleting the file:', err);
+            console.error('Error al eliminar el archivo:', err);
           }
         }
       });
     });
   } catch (err) {
-    console.error('Error generating the PDF:', err);
+    console.error('Error al generar el PDF:', err);
     res.status(500).json({ message: 'Error al generar el PDF' });
   }
 };
@@ -207,8 +213,8 @@ const enviarCorreoCliente = async (correoCliente, estadoVenta, venta) => {
             <p>Te informamos que tu compra con código <strong>${venta.codigo}</strong>, realizada el <strong>${fechaFormateada}</strong> a las <strong>${horaFormateada}</strong>, ya se encuentra "<strong>${estadoVenta}</strong>".</p>
             <p>Recuerda que el total de tu compra era de <strong>S/.${venta.total}</strong>, a cuenta dejaste <strong>S/.${venta.aCuenta}</strong> y el saldo pendiente es de <strong>S/.${venta.saldo}</strong>.</p>
             <p>Puedes recoger tu compra en nuestra tienda ubicada en:</p>
-            <p><strong>Mz, Av. Universitaria 8, Los Olivos 15302</strong></p>
-            <p>Si tienes alguna pregunta o necesitas más información, no dudes en contactarnos por WhatsApp o llamarnos a nuestro número <strong>923829182</strong>.</p>
+            <p><strong>Av. Universitaria Norte Mz L1 Lote 8, A.H. Daniel Alcides Carrión, Los Olivos</strong></p>
+            <p>Si tienes alguna pregunta o necesitas más información, no dudes en contactarnos por WhatsApp o llamarnos a nuestros números <strong>01 6788125 - 994648863</strong>.</p>
             <p>Gracias por tu preferencia.</p>
           </div>
           <div class="footer">

@@ -61,7 +61,8 @@ const enviarCorreoProveedor = async (correoProveedor, ingreso) => {
                             <p><strong>Código de Ingreso:</strong> ${ingreso.codigo}</p>
                             <p><strong>Fecha de Registro:</strong> ${new Date(ingreso.fechaCreacion).toLocaleDateString()}</p>
                             <p><strong>Fecha de Entrega Estimada:</strong> ${new Date(ingreso.fechaEntregaEstimada).toLocaleDateString()}</p>
-                            <p>Le adjunto la órden de compra en formato pdf. Por favor, esté atento a la fecha de entrega estimada indicada.</p>
+                            <p>Estamos ubicados en <strong>Av. Universitaria Norte Mz L1 Lote 8, A.H. Daniel Alcides Carrión, Los Olivos</strong></p>
+                            <p>Le adjunto la órden de compra en formato pdf. Por favor esté atento a la fecha de entrega estimada indicada.</p>
                             <p>Gracias por su atención.</p>
                         </div>
                         <div class="footer">
