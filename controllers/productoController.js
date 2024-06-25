@@ -63,7 +63,7 @@ export const crearProducto = async (req, res) => {
             await productoEspecifico.save();
         }
 
-        res.status(201).json({ producto, productoEspecifico});
+        res.status(201).json({ producto, productoEspecifico });
 
     } catch (error) {
         console.log(error);
@@ -196,5 +196,14 @@ export const obtenerProductosPorProveedor = async (req, res) => {
     } catch (error) {
         console.error('Error al obtener productos por proveedor:', error);
         res.status(500).send('Hubo un error');
+    }
+};
+
+export const obtenerProductosActivos = async (req, res) => {
+    try {
+        const productosActivos = await Producto.find({ estado: 'Activo' });
+        res.status(200).json(productosActivos);
+    } catch (error) {
+        res.status(500).json({ message: 'Error al obtener los productos activos', error });
     }
 };

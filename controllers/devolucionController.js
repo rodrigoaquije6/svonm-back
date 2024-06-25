@@ -57,7 +57,7 @@ export const crearDevolucion = async (req, res) => {
 
         // Crear los detalles de devolución
         const detallesDevolucionPromises = productosDevolucion.map(async producto => {
-            const detalleDevolucion = new DetalleDevolucion({     
+            const detalleDevolucion = new DetalleDevolucion({
                 cantidad: producto.cantidad,
                 idDevolucion: savedDevolucion._id,
                 idProducto: producto._id,
@@ -97,13 +97,17 @@ export const obtenerDevoluciones = async (req, res) => {
             const detallesDevolucion = await DetalleDevolucion.find({ idDevolucion: devolucion._id });
             return {
                 devolucion,
-                detallesDevolucion
+                detallesDevolucion,
+                detallesVenta
             };
         }));
 
+        // Ahora, buscar los detalles de venta relacionados con la venta encontrada
+        const detallesVenta = await DetalleVenta.find({ idVenta: Devolucion.idVenta._id }).populate('idProducto'); // Opcionalmente, puedes poblar los productos asociados a los detalles de venta
+
         res.status(200).json({ devolucionesConDetalles });
     } catch (error) {
-        res.status(500).json({ message: 'Error al obtener las devoluciones', error });
+        res.status(500).json({ message: 'Error al obtener las devoluciones', error:error.message });
     }
 };
 
@@ -126,7 +130,7 @@ export const obtenerDevolucion = async (req, res) => {
             detallesDevolucion
         });
     } catch (error) {
-        res.status(500).json({ message: 'Error al obtener la devolución', error });
+        res.status(500).json({ message: 'Error al obtener la devolución', error: error.message });
     }
 };
 

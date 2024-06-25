@@ -3,6 +3,8 @@ import DetalleVenta from "../models/detalleVenta.js";
 import Producto from "../models/producto.model.js";
 import Venta from "../models/venta.js";
 import Cliente from "../models/cliente.js"
+import Devolucion from "../models/devolucion.js";
+import DetalleDevolucion from "../models/detalleDevolucion.js";
 import nodemailer from 'nodemailer';
 import fs from 'fs-extra';
 import path from 'path';
@@ -23,51 +25,120 @@ export const descargarContratoPDF = async (req, res) => {
 
     const doc = new pdfkit();
 
-    // Crear el contenido del PDF
-    doc.text(`Contrato de Venta - ${venta.codigo}`);
-    doc.text(`Cliente: ${venta.idCliente.nombres} ${venta.idCliente.apellidos}`);
-    doc.text(`Trabajador: ${venta.idTrabajador.nombre}`);
-    doc.text(`Fecha de Creación: ${new Date(venta.fechaCreacion).toLocaleDateString()}`);
-    doc.text(`Estado: ${venta.estado}`);
-
-    doc.text(`\nDetalles de la Venta:`);
-    detallesVenta.forEach((detalle) => {
-      doc.text(`Producto: ${detalle.idProducto.nombre} - Cantidad: ${detalle.cantidad} - Total: S/.${detalle.total}`);
-    });
-
-    doc.text(`\nDetalles de los Tratamientos:`);
-    detallesTratamiento.forEach((detalle) => {
-      doc.text(`Tratamiento: ${detalle.idTratamiento.nombre}`);
-    });
-
     const fileName = `contrato-${venta.codigo}-${venta.idCliente.apellidos}.pdf`;
     const filePath = path.join(process.cwd(), 'temp', fileName);
 
-    // Crear la carpeta temporal si no existe
-    await fs.ensureDir(path.dirname(filePath));
+    await fs.mkdir(path.dirname(filePath), { recursive: true });
 
-    // Crear el archivo PDF
-    doc.pipe(fs.createWriteStream(filePath));
+    doc.font('Helvetica').fontSize(12);
+
+    // Encabezado
+    doc.fontSize(18).text('Contrato de Venta', { align: 'center' });
+    doc.moveDown();
+    doc.fontSize(14).text(`Código: ${venta.codigo}`, { align: 'right' });
+    doc.moveDown(2);
+
+    // Información del Cliente
+    doc.fontSize(12).text(`CLIENTE`);
+    doc.moveDown(0.5);
+    doc.text(`DNI: ${venta.idCliente.dni}`);
+    doc.text(`Nombres: ${venta.idCliente.nombres}`);
+    doc.text(`Apellidos: ${venta.idCliente.apellidos}`);
+    doc.text(`Celular: ${venta.idCliente.celular}`);
+    doc.text(`Direccion: ${venta.idCliente.direccion}`);
+    doc.text(`Correo Electronico: ${venta.idCliente.correo}`);
+    doc.moveDown(1);
+
+    // Información de los Ojos
+    doc.text(`Ojo Derecho`);
+    doc.text(`Esfera: ${venta.oDEsfera}`);
+    doc.text(`Cilindro: ${venta.oDCilindro}`);
+    doc.text(`Eje: ${venta.oDEje}`);
+    doc.text(`A/V Lejos: ${venta.oDAvLejos}`);
+    doc.text(`A/V Cerca: ${venta.oDAvCerca}`);
+    doc.text(`Add: ${venta.oDAdd}`);
+    doc.text(`Altura: ${venta.oDAltura}`);
+    doc.text(`Curva: ${venta.oDCurva}`);
+    doc.text(`DIP Lejos: ${venta.dipLejos}`);
+    doc.text(`DIP Cerca: ${venta.dipCerca}`);
+    doc.moveDown(1);
+
+    doc.text(`Ojo Izquierdo`);
+    doc.text(`Esfera: ${venta.oIEsfera}`);
+    doc.text(`Cilindro: ${venta.oICilindro}`);
+    doc.text(`Eje: ${venta.oIEje}`);
+    doc.text(`A/V Lejos: ${venta.oIAvLejos}`);
+    doc.text(`A/V Cerca: ${venta.oIAvCerca}`);
+    doc.text(`Add: ${venta.oIAdd}`);
+    doc.text(`Altura: ${venta.oIAltura}`);
+    doc.text(`Curva: ${venta.oICurva}`);
+    doc.moveDown(1);
+
+    // Material de Luna
+    doc.text(`Material Luna: ${venta.idMaterialLuna}`);
+    doc.moveDown(1);
+
+    // Detalles de Venta
+    doc.fontSize(14).text('Detalles de Venta', { underline: true });
+    doc.moveDown();
+    doc.fontSize(12);
+    detallesVenta.forEach((detalle) => {
+      doc.text(`Producto: ${detalle.idProducto.nombre}`);
+      doc.text(`Código: ${detalle.idProducto.codigo}`);
+      doc.text(`Precio: ${detalle.idProducto.precio}`);
+      doc.text(`Stock: ${detalle.idProducto.stock}`);
+      doc.text(`Cantidad: ${detalle.cantidad}`);
+      doc.text(`Total: ${detalle.total}`);
+      doc.moveDown();
+    });
+
+    // Tratamientos
+    doc.fontSize(14).text('Tratamientos', { underline: true });
+    doc.moveDown();
+    doc.fontSize(12);
+    detallesTratamiento.forEach((detalle) => {
+      doc.text(`Tratamiento: ${detalle.idTratamiento.nombre}`);
+      doc.moveDown();
+    });
+
+    // Observaciones
+    doc.fontSize(14).text('Observaciones', { underline: true });
+    doc.moveDown();
+    doc.fontSize(12).text(venta.observacion);
+    doc.moveDown(2);
+
+    // Información del Trabajador
+    doc.fontSize(12).text(`Vendedor(a): ${venta.idTrabajador.nombre}`);
+    doc.moveDown(2);
+
+    // Montos
+    doc.fontSize(12).text(`TOTAL (S/.): ${venta.total}`);
+    doc.text(`A CUENTA (S/.): ${venta.aCuenta}`);
+    doc.text(`SALDO (S/.): ${venta.saldo}`);
+    doc.moveDown(2);
+
+    // Finalización del documento
     doc.end();
 
-    // Enviar el archivo como respuesta al cliente
-    res.setHeader('Content-disposition', `attachment; filename="${fileName}"`);
-    res.setHeader('Content-type', 'application/pdf');
-    const readStream = fs.createReadStream(filePath);
-    readStream.pipe(res);
+    const stream = fs.createWriteStream(filePath);
+    doc.pipe(stream);
 
-    readStream.on('end', () => {
-      // Borrar el archivo temporal después de enviarlo al cliente
-      fs.unlink(filePath, (err) => {
+    stream.on('finish', () => {
+      res.download(filePath, fileName, async (err) => {
         if (err) {
-          console.error('Error al borrar el archivo temporal', err);
+          console.error('Error downloading the file:', err);
+        } else {
+          try {
+            await fs.unlink(filePath);
+          } catch (err) {
+            console.error('Error deleting the file:', err);
+          }
         }
       });
     });
-
-  } catch (error) {
-    console.error('Error en descargarContratoPDF:', error);
-    res.status(500).json({ message: 'Error interno al descargar el contrato' });
+  } catch (err) {
+    console.error('Error generating the PDF:', err);
+    res.status(500).json({ message: 'Error al generar el PDF' });
   }
 };
 
@@ -291,6 +362,21 @@ export const obtenerVenta = async (req, res) => {
 
     const detallesVenta = await DetalleVenta.find({ idVenta: venta._id }).populate('idProducto');
     const detallesTratamiento = await DetalleTratamiento.find({ idVenta: venta._id }).populate('idTratamiento');
+
+    // Verificar si la venta está en estado "Cambio Solicitado" o "Reembolsada"
+    if (venta.estado === 'Cambio Solicitado' || venta.estado === 'Reembolsada') {
+      const devolucion = await Devolucion.findOne({ idVenta: venta._id }).populate('idTrabajador');
+      if (devolucion) {
+        const detallesDevolucion = await DetalleDevolucion.find({ idDevolucion: devolucion._id }).populate('idProducto');
+        return res.status(200).json({
+          venta,
+          detallesVenta,
+          detallesTratamiento,
+          devolucion,
+          detallesDevolucion
+        });
+      }
+    }
 
     // Obtener el correo electrónico del cliente
     const cliente = await Cliente.findById(venta.idCliente);
