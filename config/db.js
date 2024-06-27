@@ -11,7 +11,7 @@ export const conectarDB= async () => {
             
         })
         console.log('BD Conectada');
-            
+        
 
     } catch (error) {
         console.log(error);
