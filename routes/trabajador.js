@@ -3,7 +3,8 @@ import {
   getUsers,
   register,
   getUser,
-  updateUser
+  updateUser,
+  deleteUser
 } from "../controllers/auth.controller.js";
 import { authRequired } from "../middlewares/validateToken.js";
 import validationTrabajador from "../validation/trabajadorValidator.js";
@@ -14,7 +15,7 @@ const router = Router();
 router.post('/trabajador', authRequired, register); //validationTrabajador(),
 router.get('/trabajador', authRequired, getUsers);
 router.put('/trabajador/:id', authRequired, updateUser);
-//router.delete('/trabajador/:id', authRequired, eliminarTrabajador);
+router.delete('/trabajador/:id', authRequired, deleteUser);
 router.get('/trabajador/:id', authRequired, getUser);
 
 export default router;

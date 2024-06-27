@@ -92,11 +92,14 @@ export const profile = async (req, res) => {
   if (!userFound) res.status(400).json({ message: "Usuario no encontrado" });
 
   res.json({
-    id: userFound._id,
+    _id: userFound._id,
+    nombres: userFound.nombres,
+    apellidos: userFound.apellidos,
     email: userFound.email,
     fechaCreacion: userFound.fechaCreacion,
   });
 };
+
 //metodos RUD (sin create) para usuarios, probablemente se necesite un nuevo controller para ellos
 export const getUsers = async (req, res) => {
   // const page = req.query.page;
@@ -153,11 +156,19 @@ export const updateUser = async (req, res) => {
 };
 
 export const deleteUser = async (req, res) => {
-  const user = await User.findByIdAndUpdate(req.params.id, req.body, {
-    new: true
-  });
+  const userId = req.params.id;
 
-  if (!user) return res.status(404).json({ message: "Usuario no encontrado" });
+  try {
+    const user = await User.findById(userId);
 
-  res.json(user);
+    if (!user) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+
+    await User.findByIdAndDelete(userId);
+
+    res.json({ message: "Usuario eliminado correctamente" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
