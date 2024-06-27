@@ -201,7 +201,7 @@ export const obtenerProductosPorProveedor = async (req, res) => {
 
 export const obtenerProductosActivos = async (req, res) => {
     try {
-        const productosActivos = await Producto.find({ estado: 'Activo' });
+        const productosActivos = await Producto.find({ estado: 'Activo' }).populate('tipoProducto').populate('marca').populate('proveedor');
         res.status(200).json(productosActivos);
     } catch (error) {
         res.status(500).json({ message: 'Error al obtener los productos activos', error });

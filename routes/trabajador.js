@@ -1,23 +1,20 @@
 import { Router } from "express";
 import {
-  crearTrabajador,
-  obtenerTrabajador,
-  obtenerTrabajadores,
-  actualizarTrabajador,
-  eliminarTrabajador
-} from "../controllers/trabajadorController.js";
-import { getUsers, register } from "../controllers/auth.controller.js";
+  getUsers,
+  register,
+  getUser,
+  updateUser
+} from "../controllers/auth.controller.js";
 import { authRequired } from "../middlewares/validateToken.js";
 import validationTrabajador from "../validation/trabajadorValidator.js";
 
 const router = Router();
 
 //api/trabajador
-router.post('/trabajador', authRequired, //validationTrabajador(), 
-register);
+router.post('/trabajador', authRequired, register); //validationTrabajador(),
 router.get('/trabajador', authRequired, getUsers);
-router.put('/trabajador/:id', authRequired, validationTrabajador(), actualizarTrabajador);
-router.delete('/trabajador/:id', authRequired, eliminarTrabajador);
-router.get('/trabajador/:id', authRequired, obtenerTrabajador);
+router.put('/trabajador/:id', authRequired, updateUser);
+//router.delete('/trabajador/:id', authRequired, eliminarTrabajador);
+router.get('/trabajador/:id', authRequired, getUser);
 
 export default router;

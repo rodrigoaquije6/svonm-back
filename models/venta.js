@@ -1,146 +1,107 @@
 import mongoose from "mongoose";
-import { productoSchema } from "./producto.model.js";
-
-const TratamientoSchema = new mongoose.Schema ({
-    nombre: { 
-        type: String 
-    },
-    precio: { 
-        type: Number, 
-        default: 0 
-    },
-});
 
 const VentaSchema = mongoose.Schema({
 
-    nombreCliente: {
+    codigo: {
         type: String,
         required: true
     },
-
-    fechaVenta: {
+    oDEsfera: {
+        type: String,
+    },
+    oDCilindro: {
+        type: String,
+    },
+    oDEje: {
+        type: String,
+    },
+    oDAvLejos: {
+        type: String,
+    },
+    oDAvCerca: {
+        type: String,
+    },
+    oDAdd: {
+        type: Number,
+    },
+    oDAltura: {
+        type: Number,
+    },
+    oDCurva: {
+        type: Number,
+    },
+    oIEsfera: {
+        type: String,
+    },
+    oICilindro: {
+        type: String,
+    },
+    oIEje: {
+        type: String,
+    },
+    oIAvLejos: {
+        type: String,
+    },
+    oIAvCerca: {
+        type: String,
+    },
+    oIAdd: {
+        type: Number,
+    },
+    oIAltura: {
+        type: Number,
+    },
+    oICurva: {
+        type: Number,
+    },
+    dipLejos: {
+        type: Number,
+    },
+    dipCerca: {
+        type: Number,
+    },
+    observacion: {
+        type: String,
+        required: true
+    },
+    aCuenta: {
+        type: Number,
+        required: true,
+    },
+    saldo: {
+        type: Number,
+        required: true,
+    },
+    total: {
+        type: Number,
+        required: true,
+    },
+    estado: {
+        type: String,
+        enum: ['En Fabricación', 'En Tienda', 'Finalizada', 'Cambio Solicitado', 'Reembolsada']
+    },
+    idCliente: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Cliente',
+        required: true
+    },
+    idTrabajador: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Trabajador',
+        required: true
+    },
+    idTipoLuna: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'TipoLuna',
+    },
+    idMaterialLuna: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Luna',
+    },
+    fechaCreacion: {
         type: Date,
-        required: true
-    },
-
-    celCliente: {
-        type: String,
-        required: true
-    },
-
-    dirCliente: {
-        type: String,
-        required: true
-    },
-
-    fijCliente: {
-        type: String,
-        required: true
-    },
-
-    corrCliente: {
-        type: String,
-        required: true
-    },
-///////////////
-    odEsfera: {
-        type: String,
-    },
-    odClindro: {
-        type: String,
-    },
-    odEje: {
-        type: String,
-    },
-    odAVLejos: {
-        type: String,
-    },
-    odAVCerca: {
-        type: String,
-    },
-//////////////
-    oiEsfera: {
-        type: String,
-    },
-    oiClindro: {
-        type: String,
-    },
-    oiEje: {
-        type: String,
-    },
-    oiAVLejos: {
-        type: String,
-    },
-    oiAVCerca: {
-        type: String,
-    },
-
-/////////////
-    odAdd: {
-        type: String,
-    },
-    odAltura: {
-        type: String,
-    },
-    odCurva: {
-        type: String,
-    },
-//////////////
-    oiAdd: {
-        type: String,
-    },
-    oiAltura: {
-        type: String,
-    },
-    oiCurva: {
-        type: String,
-    },
-///////////
-    DipLejos: {
-        type: String,
-    },
-    DipCerca: {
-        type: String,
-    },
-///////////
-observaciones: {
-    type: String,
-},
-optometra: {
-    type: String,
-},
-fechaEntrega: {
-    type: Date,
-},
-vendedor: {
-    type: String,
-},
-total: {
-    type: Number,
-    required: true
-},
-acuenta: {
-    type: Number,
-},
-saldo: {
-    type: Number,
-},
-//////////
-tipoLuna: {
-    type: String,
-},
-matLuna: {
-    type: String,
-},
-//////////
-    conSeguimiento: {
-        type: Boolean,
-        required: true
-    },
-    tratamientos: [TratamientoSchema],
-    productos: [productoSchema]
+        default: Date.now()
+    }
 });
 
-
-//module.exports = mongoose.model('Montura', MonturaSchema);
 export default mongoose.model("Venta", VentaSchema);

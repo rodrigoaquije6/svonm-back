@@ -6,11 +6,8 @@ export const register = async (req, res) => {
   const {
     user_dni,
     role,
-    pnombre,
-    snombre,
-    apellidop,
-    apellidom,
-    username,
+    nombres,
+    apellidos,
     celular,
     password,
     fecha_nac,
@@ -24,11 +21,8 @@ export const register = async (req, res) => {
     const newUser = new User({
       user_dni,
       role,
-      pnombre,
-      snombre,
-      apellidop,
-      apellidom,
-      username,
+      nombres,
+      apellidos,
       celular,
       password: passwordHash,
       fecha_nac,
@@ -48,10 +42,8 @@ export const register = async (req, res) => {
     res.json({
       id: userSaved._id,
       user_dni: userSaved.user_dni,
-      username: userSaved.username,
       email: userSaved.email,
-      createdAt: userSaved.createdAt,
-      updatedAt: userSaved.updatedAt,
+      fechaCreacion: userSaved.fechaCreacion,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -80,10 +72,8 @@ export const login = async (req, res) => {
       id: userFound._id,
       isActive: userFound.isActive,
       role: userFound.role,
-      username: userFound.username,
       email: userFound.email,
-      createdAt: userFound.createdAt,
-      updatedAt: userFound.updatedAt,
+      fechaCreacion: userFound.fechaCreacion,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -103,10 +93,8 @@ export const profile = async (req, res) => {
 
   res.json({
     id: userFound._id,
-    username: userFound.username,
     email: userFound.email,
-    createdAt: userFound.createdAt,
-    updatedAt: userFound.updatedAt,
+    fechaCreacion: userFound.fechaCreacion,
   });
 };
 //metodos RUD (sin create) para usuarios, probablemente se necesite un nuevo controller para ellos
@@ -123,24 +111,35 @@ export const getUsers = async (req, res) => {
 };
 
 export const getUser = async (req, res) => {
-  const user = await User.findById(req.params.id).populate('_id'); //podria incluir tambien todos los datos de usuario con el .populate
+  const userId = req.params.id;
 
-  if (!user) return res.status(404).json({ message: "Usuario no encontrado" });
+  try {
+    const user = await User.findById(userId);
 
-  res.json({
-    _id: user._id,
-    user_dni: user.user_dni,
-    role: user.role,
-    pnombre: user.pnombre,
-    snombre: user.snombre,
-    apellidop: user.apellidop,
-    apellidom: user.apellidom,
-    username: user.username,
-    celular: user.celular,
-    fecha_nac: user.fecha_nac,
-    email: user.email,
-    isActive: user.isActive,
-  });
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    // Obtener la contraseña desencriptada desde el cuerpo de la solicitud
+    const { password } = req.body;
+
+    if (!password) {
+      return res.status(400).json({ message: 'Se requiere la contraseña para acceder al perfil' });
+    }
+
+    // Verificar si la contraseña proporcionada coincide con la contraseña almacenada
+    const isPasswordCorrect = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordCorrect) {
+      return res.status(400).json({ message: 'Contraseña incorrecta' });
+    }
+
+    // Devolver los datos del usuario sin la contraseña
+    const { password: userPassword, ...userData } = user.toObject();
+    res.json(userData);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
 export const updateUser = async (req, res) => {

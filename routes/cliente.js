@@ -19,4 +19,5 @@ router.delete('/cliente/:id', authRequired, eliminarCliente);
 router.get('/cliente/:id', authRequired, obtenerCliente);
 router.get('/cliente/:id/historial-cliente', generarHistorialClienteExcel);
 
+
 export default router;
