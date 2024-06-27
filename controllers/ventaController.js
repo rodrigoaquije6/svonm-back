@@ -16,19 +16,24 @@ import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 export const descargarContratoPDF = async (req, res) => {
   try {
     const { id } = req.params;
-    const venta = await Venta.findById(id).populate('idCliente').populate('idTrabajador');
+    const venta = await Venta.findById(id).populate('idCliente').populate('idTrabajador').populate('idTipoLuna').populate('idMaterialLuna');
 
     if (!venta) {
       return res.status(404).json({ message: 'Venta no encontrada' });
     }
 
     const detallesVenta = await DetalleVenta.find({ idVenta: venta._id }).populate('idProducto');
+    const productosSeleccionadosNombre = detallesVenta.map(detalle => detalle.idProducto?.nombre || 'N/A');
+    const productosSeleccionadosPrecio = detallesVenta.map(detalle => detalle.idProducto?.precio || 'N/A');
+    const productosSeleccionadosCantidad = detallesVenta.map(detalle => detalle.cantidad?.toString() || 'N/A');
+    const productosSeleccionadosTotal = detallesVenta.map(detalle => detalle.total?.toFixed(2) || 'N/A');
     const detallesTratamiento = await DetalleTratamiento.find({ idVenta: venta._id }).populate('idTratamiento');
-    const todosTratamientos = await Tratamiento.find();
+    const tratamientosSeleccionadosNombre = detallesTratamiento.map(detalle => detalle.idTratamiento?.nombre || 'N/A');
+    const tratamientosSeleccionadosPrecio = detallesTratamiento.map(detalle => detalle.idTratamiento.precio?.toFixed(2) || 'N/A');
 
-    const doc = new pdfkit({ size: 'A4' });
+    const doc = new pdfkit({ size: 'Legal' });
 
-    const fileName = `contrato-${venta.codigo}-${venta.idCliente.apellidos}.pdf`;
+    const fileName = `contrato-${venta.codigo}-${venta.idCliente.apellidos}-${venta.estado}.pdf`;
     const filePath = path.join(process.cwd(), 'temp', fileName);
 
     await fs.mkdir(path.dirname(filePath), { recursive: true });
@@ -45,86 +50,122 @@ export const descargarContratoPDF = async (req, res) => {
     doc.moveDown(1);
 
     // Título del contrato
-    doc.fontSize(14).text('CONTRATO', { align: 'center' });
+    doc.fontSize(14).text('CONTRATO', { align: 'right' });
     doc.fontSize(12).text(`Número: ${venta.codigo}`, { align: 'right' });
-    doc.text(`Fecha: ${new Date(venta.fecha).toLocaleDateString()}`, { align: 'right' });
+    doc.text(`Fecha: ${new Date(venta.fechaCreacion)?.toLocaleDateString()}`, { align: 'right' });
+    doc.text(`Estado: ${venta.estado}`, { align: 'right' });
     doc.moveDown(1);
+
+    // Información del Cliente
+    doc.fontSize(12).text('INFORMACIÓN DEL CLIENTE', { underline: true });
+    doc.moveDown(0.5);
+    doc.text(`DNI: ${venta.idCliente?.dni ? venta.idCliente.dni : 'N/A'}`);
+    doc.text(`Nombre: ${venta.idCliente?.nombres ? venta.idCliente.nombres : 'N/A'} ${venta.idCliente?.apellidos ? venta.idCliente.apellidos : 'N/A'}`);
+    doc.text(`Teléfono: ${venta.idCliente?.celular ? venta.idCliente.celular : 'N/A'}`);
+    doc.text(`Correo: ${venta.idCliente?.correo ? venta.idCliente.correo : 'N/A'}`);
+    doc.moveDown(0.5);
 
     // Información de los ojos
     doc.fontSize(12).text('INFORMACIÓN DE LOS OJOS', { underline: true });
     doc.moveDown(0.5);
 
-    const column1X = 50;
-    const column2X = 300;
-    const colWidth = 100;
+    doc.text('Ojo Derecho:');
+    doc.moveDown(0.5);
+    doc.list(['Esfera: ' + (venta.oDEsfera?.toString() || 'N/A'),
+    'Cilindro: ' + (venta.oDCilindro?.toString() || 'N/A'),
+    'Eje: ' + (venta.oDEje?.toString() || 'N/A'),
+    'A/V Lejos: ' + (venta.oDAvLejos?.toString() || 'N/A'),
+    'A/V Cerca: ' + (venta.oDAvCerca?.toString() || 'N/A'),
+    'Add.: ' + (venta.oDAdd?.toString() || 'N/A'),
+    'Altura: ' + (venta.oDAltura?.toString() || 'N/A'),
+    'Curva: ' + (venta.oDCurva?.toString() || 'N/A')
+    ], 100, doc.y, { bulletRadius: 2 })
 
-    // Tabla de información de los ojos
-    doc.text('Ojo', column1X, doc.y);
-    doc.text('Esfera', column1X + colWidth, doc.y);
-    doc.text('Cilindro', column1X + colWidth * 2, doc.y);
-    doc.text('Eje', column1X + colWidth * 3, doc.y);
-    doc.text('A/V Lejos', column1X + colWidth * 4, doc.y);
-    doc.text('A/V Cerca', column1X + colWidth * 5, doc.y);
-    doc.text('Add', column2X, doc.y);
-    doc.text('Altura', column2X + colWidth, doc.y);
-    doc.text('Curva', column2X + colWidth * 2, doc.y);
     doc.moveDown(0.5);
 
-    // Datos de los ojos
-    const ojoDerechoY = doc.y;
-    doc.text('Derecho', column1X, ojoDerechoY);
-    doc.text(venta.oDEsfera.toString(), column1X + colWidth, ojoDerechoY);
-    doc.text(venta.oDCilindro.toString(), column1X + colWidth * 2, ojoDerechoY);
-    doc.text(venta.oDEje.toString(), column1X + colWidth * 3, ojoDerechoY);
-    doc.text(venta.oDAvLejos.toString(), column1X + colWidth * 4, ojoDerechoY);
-    doc.text(venta.oDAvCerca.toString(), column1X + colWidth * 5, ojoDerechoY);
-    doc.text(venta.oDAdd.toString(), column2X, ojoDerechoY);
-    doc.text(venta.oDAltura.toString(), column2X + colWidth, ojoDerechoY);
-    doc.text(venta.oDCurva.toString(), column2X + colWidth * 2, ojoDerechoY);
+    const offsetX = 250; // Ajusta según tu diseño
+    doc.text('Ojo Izquierdo:', offsetX, doc.y - 139.54); // Ajusta la posición Y según necesites
+    doc.moveDown(0.5);
+    doc.list([
+      'Esfera: ' + (venta.oIEsfera?.toString() || 'N/A'),
+      'Cilindro: ' + (venta.oICilindro?.toString() || 'N/A'),
+      'Eje: ' + (venta.oIEje?.toString() || 'N/A'),
+      'A/V Lejos: ' + (venta.oIAvLejos?.toString() || 'N/A'),
+      'A/V Cerca: ' + (venta.oIAvCerca?.toString() || 'N/A'),
+      'Add.: ' + (venta.oIAdd?.toString() || 'N/A'),
+      'Altura: ' + (venta.oIAltura?.toString() || 'N/A'),
+      'Curva: ' + (venta.oICurva?.toString() || 'N/A')
+    ], offsetX + 30, doc.y, { bulletRadius: 2 });
 
-    const ojoIzquierdoY = doc.y;
-    doc.text('Izquierdo', column1X, ojoIzquierdoY);
-    doc.text(venta.oIEsfera.toString(), column1X + colWidth, ojoIzquierdoY);
-    doc.text(venta.oICilindro.toString(), column1X + colWidth * 2, ojoIzquierdoY);
-    doc.text(venta.oIEje.toString(), column1X + colWidth * 3, ojoIzquierdoY);
-    doc.text(venta.oIAvLejos.toString(), column1X + colWidth * 4, ojoIzquierdoY);
-    doc.text(venta.oIAvCerca.toString(), column1X + colWidth * 5, ojoIzquierdoY);
-    doc.text(venta.oIAdd.toString(), column2X, ojoIzquierdoY);
-    doc.text(venta.oIAltura.toString(), column2X + colWidth, ojoIzquierdoY);
-    doc.text(venta.oICurva.toString(), column2X + colWidth * 2, ojoIzquierdoY);
+    doc.moveDown(0.5);
+
+    const offsetXDIP = 426; // Ajusta según tu diseño
+    doc.text('DIP:', offsetXDIP, doc.y - 139.54); // Ajusta la posición Y según necesites
+    doc.moveDown(0.5);
+    doc.list([
+      'Cerca: ' + (venta.dipCerca?.toString() || 'N/A'),
+      'Lejos: ' + (venta.dipLejos?.toString() || 'N/A'),
+    ], offsetXDIP + 30, doc.y, { bulletRadius: 2 });
+
     doc.moveDown(1);
 
+    // Información de los ojos
+    doc.fontSize(12).text('PRODUCTO(S)', 72, doc.y + 85, { underline: true });
+    doc.moveDown(0.5);
+
+    // Lista de productos
+    productosSeleccionadosNombre.forEach((nombre, index) => {
+      doc.text(`- ${nombre}, precio: S/. ${productosSeleccionadosPrecio[index]}, cantidad: ${productosSeleccionadosCantidad[index]}, total: S/. ${productosSeleccionadosTotal[index]}`);
+      doc.moveDown(0.5);
+    });
+
+    // LUNAS
+    doc.moveDown(1);
+    doc.fontSize(12).text('LUNA', { underline: true });
+    doc.moveDown(0.5);
+    doc.text(`Tipo: ${venta.idTipoLuna?.nombre ? venta.idTipoLuna.nombre : 'N/A'}`);
+    doc.text(`Material: ${venta.idMaterialLuna?.material ? venta.idMaterialLuna.material : 'N/A'}`);
+    doc.moveDown(0.5);
+
     // Tratamientos
+    doc.moveDown(1);
     doc.fontSize(12).text('TRATAMIENTOS', { underline: true });
     doc.moveDown(0.5);
 
     // Lista de tratamientos
-    const tratamientos = todosTratamientos.map(tratamiento => tratamiento.nombre);
-    doc.list(tratamientos, { bulletRadius: 2 });
+    let tratamientosLinea = '';
+    if (tratamientosSeleccionadosNombre.length > 0) {
+      tratamientosSeleccionadosNombre.forEach((nombre, index) => {
+        tratamientosLinea += `${nombre} (S/. ${tratamientosSeleccionadosPrecio[index]}), `;
+      });
+      doc.text(tratamientosLinea.slice(0, -2)); // Remueve la última coma y espacio
+    } else {
+      doc.text('N/A');
+    }
 
     // Observaciones y montos
     doc.moveDown(1);
     doc.fontSize(12).text('OBSERVACIONES', { underline: true });
     doc.moveDown(0.5);
-    doc.text(venta.observacion || 'N/A');
+    doc.text(venta?.observacion || 'N/A');
     doc.moveDown(1);
 
     doc.fontSize(12).text('MONTOS', { underline: true });
     doc.moveDown(0.5);
-    doc.text(`Total: S/. ${venta.total.toFixed(2)}`);
-    doc.text(`A cuenta: S/. ${venta.aCuenta.toFixed(2)}`);
-    doc.text(`Saldo: S/. ${venta.saldo.toFixed(2)}`);
+    doc.text(`Total: S/. ${venta.total?.toFixed(2)}`);
+    doc.text(`A cuenta: S/. ${venta.aCuenta?.toFixed(2)}`);
+    doc.text(`Saldo: S/. ${venta.saldo?.toFixed(2)}`);
     doc.moveDown(1);
 
     // Información del trabajador
     doc.fontSize(12).text('INFORMACIÓN DEL TRABAJADOR', { underline: true });
     doc.moveDown(0.5);
-    doc.text(`Vendedor(a): ${venta.idTrabajador.nombre}`);
+    doc.text(`Vendedor(a): ${venta.idTrabajador?.nombres} ${venta.idTrabajador?.apellidos}`);
     doc.moveDown(2);
 
     // Pie de página
     doc.fontSize(10).text('Pasados los 30 días, no hay lugar a reclamo.', { align: 'center' });
-    doc.text('La lámpara del cuerpo es el ojo; así que, si tu ojo es bueno, todo el');
+    doc.text('La lámpara del cuerpo es el ojo; así que, si tu ojo es bueno, todo tu cuerpo estará lleno de luz. Mateo 6:22', { align: 'center' });
 
     doc.end();
 

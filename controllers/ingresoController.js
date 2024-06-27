@@ -3,6 +3,122 @@ import DetalleIngreso from "../models/detalleIngreso.js";
 import Producto from "../models/producto.model.js";
 import nodemailer from 'nodemailer';
 import Proveedor from "../models/proveedor.js";
+import pdfkit from 'pdfkit';
+import fs from 'fs-extra';
+import path from 'path';
+
+export const descargarContratoPDF = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const ingreso = await Ingreso.findById(id).populate('idProveedor').populate('idTrabajador');
+
+        if (!ingreso) {
+            return res.status(404).json({ message: 'Ingreso no encontrado' });
+        }
+
+        const detallesIngreso = await DetalleIngreso.find({ idIngreso: ingreso._id }).populate('idProducto');
+        const productosSeleccionadosNombre = detallesIngreso.map(detalle => detalle.idProducto?.nombre || 'N/A');
+        const productosSeleccionadosPrecio = detallesIngreso.map(detalle => detalle.idProducto?.precio || 'N/A');
+        const productosSeleccionadosCantidad = detallesIngreso.map(detalle => detalle.cantidad?.toString() || 'N/A');
+        const productosSeleccionadosTotal = detallesIngreso.map(detalle => detalle.total?.toFixed(2) || 'N/A');
+
+        const doc = new pdfkit({ size: 'Legal' });
+
+        const fileName = `orden-compra-${ingreso.codigo}-${ingreso.idProveedor.nombre}-${ingreso.estado}.pdf`;
+        const filePath = path.join(process.cwd(), 'temp', fileName);
+
+        await fs.mkdir(path.dirname(filePath), { recursive: true });
+
+        const stream = fs.createWriteStream(filePath);
+        doc.pipe(stream);
+
+        // Encabezado
+        doc.font('Helvetica').fontSize(18).text('Óptica NUEVO MUNDO', { align: 'center' });
+        doc.fontSize(10).text('Av. Universitaria Norte Mz L1 Lote 8', { align: 'center' });
+        doc.text('A.H. Daniel Alcides Carrión', { align: 'center' });
+        doc.text('Los Olivos', { align: 'center' });
+        doc.text('Teléfono: 01 6788125 / 994648863', { align: 'center' });
+        doc.moveDown(1);
+
+        // Título del contrato
+        doc.fontSize(14).text('ORDEN DE COMPRA', { align: 'right' });
+        doc.fontSize(12).text(`Número: ${ingreso.codigo}`, { align: 'right' });
+        doc.text(`Fecha: ${new Date(ingreso.fechaCreacion)?.toLocaleDateString()}`, { align: 'right' });
+        doc.text(`Estado: ${ingreso.estado}`, { align: 'right' });
+        doc.moveDown(1);
+
+        // Información del Proveedor
+        doc.fontSize(12).text('INFORMACIÓN DEL PROVEEDOR', { underline: true });
+        doc.moveDown(0.5);
+        doc.text(`RUC: ${ingreso.idProveedor?.ruc ? ingreso.idProveedor.ruc : 'N/A'}`);
+        doc.text(`Nombre: ${ingreso.idProveedor?.nombre ? ingreso.idProveedor.nombre : 'N/A'}`);
+        doc.text(`Teléfono: ${ingreso.idProveedor?.telefono ? ingreso.idProveedor.telefono : 'N/A'}`);
+        doc.text(`Correo: ${ingreso.idProveedor?.correo ? ingreso.idProveedor.correo : 'N/A'}`);
+        doc.moveDown(0.5);
+
+        doc.moveDown(1);
+
+        // Información de los ojos
+        doc.fontSize(12).text('PRODUCTO(S)', { underline: true });
+        doc.moveDown(0.5);
+
+        // Lista de productos
+        productosSeleccionadosNombre.forEach((nombre, index) => {
+            doc.text(`- ${nombre}, precio: S/. ${productosSeleccionadosPrecio[index]}, cantidad: ${productosSeleccionadosCantidad[index]}, total: S/. ${productosSeleccionadosTotal[index]}`);
+            doc.moveDown(0.5);
+        });
+
+        // Observaciones y montos
+        doc.moveDown(1);
+        doc.fontSize(12).text('OBSERVACIONES', { underline: true });
+        doc.moveDown(0.5);
+        doc.text(ingreso?.observacion || 'N/A');
+        doc.moveDown(1);
+
+        doc.fontSize(12).text('MONTOS', { underline: true });
+        doc.moveDown(0.5);
+        doc.text(`SubTotal: S/. ${ingreso.subtotal?.toFixed(2)}`);
+        doc.text(`Descuento: ${ingreso?.descuento ? ingreso.descuento : '0'}%`);
+        doc.text(`Impuesto: ${ingreso?.impuesto ? ingreso.descuento : '0'}%`);
+        doc.text(`Total: S/. ${ingreso.total?.toFixed(2)}`);
+        doc.moveDown(1);
+
+        // Fecha entrega estimada
+        doc.fontSize(12).text('FECHA DE ENTREGA ESTIMADA', { underline: true });
+        doc.moveDown(0.5);
+        doc.text(`Fecha de entrega estimada: ${new Date(ingreso.fechaEntregaEstimada)?.toLocaleDateString()}`);
+        doc.moveDown(1);
+
+        // Información del trabajador
+        doc.fontSize(12).text('INFORMACIÓN DEL TRABAJADOR', { underline: true });
+        doc.moveDown(0.5);
+        doc.text(`Vendedor(a): ${ingreso.idTrabajador?.nombres} ${ingreso.idTrabajador?.apellidos}`);
+        doc.moveDown(2);
+
+        // Pie de página
+        doc.fontSize(10).text('La lámpara del cuerpo es el ojo; así que, si tu ojo es bueno, todo tu cuerpo estará lleno de luz. Mateo 6:22', { align: 'center' });
+
+        doc.end();
+
+        stream.on('finish', () => {
+            res.download(filePath, fileName, async (err) => {
+                if (err) {
+                    console.error('Error al descargar el archivo:', err);
+                    res.status(500).json({ message: 'Error al descargar el archivo PDF' });
+                } else {
+                    try {
+                        await fs.unlink(filePath);
+                    } catch (err) {
+                        console.error('Error al eliminar el archivo:', err);
+                    }
+                }
+            });
+        });
+    } catch (err) {
+        console.error('Error al generar el PDF:', err);
+        res.status(500).json({ message: 'Error al generar el PDF' });
+    }
+};
 
 // Configuración del transporter (servidor de correo)
 const transporter = nodemailer.createTransport({

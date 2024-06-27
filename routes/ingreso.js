@@ -4,7 +4,8 @@ import {
     obtenerIngresos,
     obtenerIngreso,
     actualizarIngreso,
-    actualizarEstadoIngreso
+    actualizarEstadoIngreso,
+    descargarContratoPDF
 } from "../controllers/ingresoController.js";
 import { authRequired } from "../middlewares/validateToken.js";
 
@@ -15,5 +16,7 @@ router.get('/ingreso', authRequired, obtenerIngresos);
 router.put('/ingreso/:id', authRequired, actualizarIngreso);
 router.put('/ingreso/:id/estado', actualizarEstadoIngreso);
 router.get('/ingreso/:id', authRequired, obtenerIngreso);
+router.get('/ingreso/:id/descargar-contrato', descargarContratoPDF);
+
 
 export default router;

@@ -207,3 +207,26 @@ export const obtenerProductosActivos = async (req, res) => {
         res.status(500).json({ message: 'Error al obtener los productos activos', error });
     }
 };
+
+// Función para actualizar el estado de un producto
+export const actualizarEstadoProducto = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { estado } = req.body;
+
+        // Buscar el producto por su ID
+        const producto = await Producto.findById(id);
+        if (!producto) {
+            return res.status(404).json({ msg: 'Producto no encontrado' });
+        }
+
+        // Actualizar el estado del producto
+        producto.estado = estado;
+        await producto.save();
+
+        res.json({ msg: 'Estado del producto actualizado correctamente', producto });
+    } catch (error) {
+        console.error('Hubo un error al actualizar el estado del producto:', error);
+        res.status(500).send('Hubo un error al actualizar el estado del producto');
+    }
+};
