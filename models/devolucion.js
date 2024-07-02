@@ -26,7 +26,7 @@ const DevolucionSchema = new mongoose.Schema({
     },
     idTrabajador: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Trabajador',
+        ref: 'User',
         required: true
     },
     fechaCreacion: {

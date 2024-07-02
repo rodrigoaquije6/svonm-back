@@ -20,6 +20,6 @@ router.put('/producto/:id', authRequired, actualizarProducto);
 //router.delete('/montura/:id', authRequired, eliminarMontura);
 router.get('/producto/:id', authRequired, obtenerProducto);
 router.get('/producto/proveedor/:idProveedor', authRequired, obtenerProductosPorProveedor);
-router.put('/producto/:id/estado', actualizarEstadoProducto); // Ruta para actualizar el estado del producto
+router.put('/producto/:id/estado', actualizarEstadoProducto);
 
 export default router;

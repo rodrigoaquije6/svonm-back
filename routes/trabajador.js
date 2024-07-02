@@ -4,7 +4,8 @@ import {
   register,
   getUser,
   updateUser,
-  deleteUser
+  deleteUser,
+  actualizarEstadoTrabajador
 } from "../controllers/auth.controller.js";
 import { authRequired } from "../middlewares/validateToken.js";
 import validationTrabajador from "../validation/trabajadorValidator.js";
@@ -17,5 +18,6 @@ router.get('/trabajador', authRequired, getUsers);
 router.put('/trabajador/:id', authRequired, updateUser);
 router.delete('/trabajador/:id', authRequired, deleteUser);
 router.get('/trabajador/:id', authRequired, getUser);
+router.put('/trabajador/:id/estado', actualizarEstadoTrabajador);
 
 export default router;

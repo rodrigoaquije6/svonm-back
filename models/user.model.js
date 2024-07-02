@@ -41,9 +41,10 @@ const userSchema = new mongoose.Schema(
       trim: true,
       unique: true,
     },
-    isActive: {
-      type: Boolean,
-      default: true
+    estado: {
+      type: String,
+      default: 'Activo',
+      enum: ['Activo', 'Inactivo']
     },
     fechaCreacion: {
       type: Date,

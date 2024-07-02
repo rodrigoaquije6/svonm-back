@@ -12,7 +12,7 @@ export const register = async (req, res) => {
     password,
     fecha_nac,
     email,
-    isActive
+    estado
   } = req.body;
 
   try {
@@ -27,7 +27,7 @@ export const register = async (req, res) => {
       password: passwordHash,
       fecha_nac,
       email,
-      isActive,
+      estado,
     });
 
     const userFound = await User.findOne({ email });
@@ -60,9 +60,13 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: "Usuario no encontrado" });
 
     const isMatch = await bcrypt.compare(password, userFound.password);
-
     if (!isMatch)
-      return res.status(400).json({ message: "Password incorrecto" });
+      return res.status(400).json({ message: "Contraseña Incorecta" });
+
+    // Verificar si el usuario está activo
+    if (userFound.estado !== 'Activo') {
+      return res.status(403).json({ message: "Usuario inactivo. No puede acceder al sistema." });
+    }
 
     const token = await createAccessToken({ id: userFound._id });
 
@@ -70,7 +74,7 @@ export const login = async (req, res) => {
     res.json({
       token,
       id: userFound._id,
-      isActive: userFound.isActive,
+      estado: userFound.estado,
       role: userFound.role,
       email: userFound.email,
       fechaCreacion: userFound.fechaCreacion,
@@ -170,5 +174,26 @@ export const deleteUser = async (req, res) => {
     res.json({ message: "Usuario eliminado correctamente" });
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+};
+
+// Función para actualizar el estado de un trabajador
+export const actualizarEstadoTrabajador = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { estado } = req.body;
+
+    const trabajador = await User.findById(id);
+    if (!trabajador) {
+      return res.status(404).json({ msg: 'Trabajador no encontrado' });
+    }
+
+    trabajador.estado = estado;
+    await trabajador.save();
+
+    res.json({ msg: 'Estado del trabajador actualizado correctamente', trabajador });
+  } catch (error) {
+    console.error('Hubo un error al actualizar el estado del trabajador:', error);
+    res.status(500).send('Hubo un error al actualizar el estado del trabajador');
   }
 };
