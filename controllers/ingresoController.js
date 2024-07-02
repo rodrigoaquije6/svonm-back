@@ -199,23 +199,25 @@ const enviarCorreoProveedor = async (correoProveedor, ingreso) => {
     }
 };
 
-
 const obtenerProximoCodigoIngreso = async () => {
     try {
         // Buscar el último ingreso en la base de datos
-        const ultimoIngreso = await Ingreso.findOne().sort({ codigo: -1 }).exec();
+        const ultimoIngreso = await Ingreso.findOne({ codigo: { $regex: /^ONMI-\d{5}$/ } })
+            .sort({ codigo: -1 })
+            .exec();
 
-        // Si no hay ingresos en la base de datos, comenzar desde 1
+        let proximoCodigoNumerico;
         if (!ultimoIngreso) {
-            return 'ONMI-1';
+            proximoCodigoNumerico = 1;
+        } else {
+            // Extraer el número del código de la última venta
+            const ultimoCodigoNumerico = parseInt(ultimoIngreso.codigo.split('-')[1]);
+            proximoCodigoNumerico = ultimoCodigoNumerico + 1;
         }
 
-        // Extraer el número del código del último Ingreso
-        const ultimoCodigoNumerico = parseInt(ultimoIngreso.codigo.split('-')[1]);
-
-        // Construir el próximo código del ingreso
-        const proximoCodigoNumerico = ultimoCodigoNumerico + 1;
-        return `ONMI-${proximoCodigoNumerico}`;
+        // Formatear el próximo código de venta con ceros a la izquierda
+        const proximoCodigo = `ONMI-${proximoCodigoNumerico.toString().padStart(5, '0')}`;
+        return proximoCodigo;
     } catch (error) {
         throw new Error('Error al obtener el próximo código del ingreso');
     }

@@ -5,13 +5,75 @@ import Venta from "../models/venta.js";
 import Cliente from "../models/cliente.js"
 import Devolucion from "../models/devolucion.js";
 import DetalleDevolucion from "../models/detalleDevolucion.js";
-import Tratamiento from "../models/tratamiento.js";
 import nodemailer from 'nodemailer';
 import fs from 'fs-extra';
+import os from 'os';
 import path from 'path';
 import pdfkit from 'pdfkit';
-import puppeteer from 'puppeteer';
-import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+
+import { format } from 'date-fns';
+import { createObjectCsvWriter } from 'csv-writer';
+import { Storage } from '@google-cloud/storage';
+
+const storage = new Storage({
+  projectId: 'digfact-urp-jesuslluen-421602',
+  keyFilename: 'E:\\PROYECTOS\\digfact-urp-jesuslluen-421602-1798149ad24a.json'
+});
+
+const bucketName = 'lnd-urp-prueba2-bucket-bigquery-aquijerodrigo';
+const destinationFilename = 'ventasDeHoy.csv';
+const downloadsDir = path.join(os.homedir(), 'Downloads');
+
+export const generarCsvVentasDeHoy = async (req, res) => {
+  try {
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    const mañana = new Date(hoy);
+    mañana.setDate(mañana.getDate() + 1);
+
+    const ventasDeHoy = await Venta.find({
+      fechaCreacion: {
+        $gte: hoy,
+        $lt: mañana
+      }
+    }).populate('idCliente').populate('idTrabajador');
+
+    const csvWriter = createObjectCsvWriter({
+      path: path.join(downloadsDir, '/ventasDeHoy.csv'),
+      header: [
+        { id: 'id' },
+        { id: 'cliente' },
+        { id: 'trabajador' },
+        { id: 'estado' },
+        { id: 'total' },
+        { id: 'fecha' },
+      ]
+    });
+
+    const csvRows = ventasDeHoy.map(venta => ({
+      id: venta.codigo,
+      cliente: `${venta.idCliente.nombres} ${venta.idCliente.apellidos}`,
+      trabajador: `${venta.idTrabajador.nombres} ${venta.idTrabajador.apellidos}`,
+      estado: venta.estado,
+      total: venta.total,
+      fecha: format(new Date(venta.fechaCreacion), 'yyyy-MM-dd'),
+    }));
+
+    const csvContent = csvRows.map(row => Object.values(row).join(',')).join('\n');
+
+    const filePath = path.join(downloadsDir, 'ventasDeHoy.csv');
+    fs.writeFileSync(filePath, csvContent);
+
+    await storage.bucket(bucketName).upload(filePath, {
+      destination: destinationFilename
+    });
+
+    res.send('Archivo CSV generado y subido a GCS exitosamente');
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error al generar y subir el archivo CSV');
+  }
+};
 
 export const descargarContratoPDF = async (req, res) => {
   try {
@@ -279,19 +341,28 @@ const enviarCorreoCliente = async (correoCliente, estadoVenta, venta) => {
 const obtenerProximoCodigoVenta = async () => {
   try {
     // Buscar la última venta en la base de datos
-    const ultimaVenta = await Venta.findOne().sort({ codigo: -1 }).exec();
+    const ultimaVenta = await Venta.findOne({ codigo: { $regex: /^ONMV-\d{5}$/ } })
+      .sort({ codigo: -1 })
+      .exec();
 
-    // Si no hay ventas en la base de datos, comenzar desde 1
+    let proximoCodigoNumerico;
     if (!ultimaVenta) {
-      return 'ONMV-1';
+      // Si no hay ventas en la base de datos, comenzar desde 1
+      proximoCodigoNumerico = 1;
+    } else {
+      // Extraer el número del código de la última venta
+      const ultimoCodigoNumerico = parseInt(ultimaVenta.codigo.split('-')[1]);
+      console.log(`Último número en el código de venta en la BD: ${ultimoCodigoNumerico}`);
+
+      // Construir el próximo número de código de venta
+      proximoCodigoNumerico = ultimoCodigoNumerico + 1;
     }
 
-    // Extraer el número del código de la última venta
-    const ultimoCodigoNumerico = parseInt(ultimaVenta.codigo.split('-')[1]);
+    // Formatear el próximo código de venta con ceros a la izquierda
+    const proximoCodigo = `ONMV-${proximoCodigoNumerico.toString().padStart(5, '0')}`;
+    console.log(`Próximo código de venta generado: ${proximoCodigo}`);
 
-    // Construir el próximo código de venta
-    const proximoCodigoNumerico = ultimoCodigoNumerico + 1;
-    return `ONMV-${proximoCodigoNumerico}`;
+    return proximoCodigo;
   } catch (error) {
     throw new Error('Error al obtener el próximo código de venta');
   }
@@ -348,6 +419,7 @@ export const crearVenta = async (req, res) => {
     const detalleVentasPromises = productosAgregados.map(producto => {
       const detalleVenta = new DetalleVenta({
         cantidad: producto.cantidad,
+        descuento: producto.descuento,
         total: producto.total,
         idVenta: savedVenta._id,
         idProducto: producto._id

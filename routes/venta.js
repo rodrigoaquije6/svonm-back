@@ -5,7 +5,8 @@ import {
   obtenerVenta,
   actualizarVenta,
   actualizarEstadoVenta,
-  descargarContratoPDF
+  descargarContratoPDF,
+  generarCsvVentasDeHoy
 } from "../controllers/ventaController.js";
 import { authRequired } from "../middlewares/validateToken.js";
 
@@ -17,5 +18,6 @@ router.put('/venta/:id', authRequired, actualizarVenta);
 router.put('/venta/:id/estado', authRequired, actualizarEstadoVenta);
 router.get('/venta/:id', authRequired, obtenerVenta);
 router.get('/venta/:id/descargar-contrato', descargarContratoPDF);
+router.get('/venta/ventasDeHoy/csv', generarCsvVentasDeHoy);
 
 export default router;

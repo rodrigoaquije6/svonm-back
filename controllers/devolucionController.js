@@ -5,22 +5,25 @@ import Producto from '../models/producto.model.js';
 
 const obtenerProximoCodigoDevolucion = async () => {
     try {
-        // Buscar la última devolución en la base de datos
-        const ultimaDevolucion = await Devolucion.findOne().sort({ codigo: -1 }).exec();
+        // Buscar el último ingreso en la base de datos
+        const ultimaDevolucion = await Devolucion.findOne({ codigo: { $regex: /^ONMD-\d{5}$/ } })
+            .sort({ codigo: -1 })
+            .exec();
 
-        // Si no hay devoluciones en la base de datos, comenzar desde 1
+        let proximoCodigoNumerico;
         if (!ultimaDevolucion) {
-            return 'ONMD-1';
+            proximoCodigoNumerico = 1;
+        } else {
+            // Extraer el número del código de la última venta
+            const ultimoCodigoNumerico = parseInt(ultimaDevolucion.codigo.split('-')[1]);
+            proximoCodigoNumerico = ultimoCodigoNumerico + 1;
         }
-
-        // Extraer el número del código de la última devolución
-        const ultimoCodigoNumerico = parseInt(ultimaDevolucion.codigo.split('-')[1]);
-
-        // Construir el próximo código de devolución
-        const proximoCodigoNumerico = ultimoCodigoNumerico + 1;
-        return `ONMD-${proximoCodigoNumerico}`;
+        
+        // Formatear el próximo código de venta con ceros a la izquierda
+        const proximoCodigo = `ONMD-${proximoCodigoNumerico.toString().padStart(5, '0')}`;
+        return proximoCodigo;
     } catch (error) {
-        throw new Error('Error al obtener el próximo código de devolución');
+        throw new Error('Error al obtener el próximo código de la devolución');
     }
 };
 

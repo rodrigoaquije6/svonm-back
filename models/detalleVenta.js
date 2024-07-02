@@ -5,6 +5,10 @@ const DetalleVentaSchema = mongoose.Schema({
         type: Number,
         required: true
     },
+    descuento: {
+        type: Number,
+        required: true
+    },
     total: {
         type: Number,
         required: true
