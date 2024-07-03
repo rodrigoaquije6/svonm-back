@@ -10,7 +10,6 @@ import fs from 'fs-extra';
 import os from 'os';
 import path from 'path';
 import pdfkit from 'pdfkit';
-
 import { format } from 'date-fns';
 import { createObjectCsvWriter } from 'csv-writer';
 import { Storage } from '@google-cloud/storage';
@@ -75,13 +74,13 @@ export const generarCsvVentasDeHoy = async (req, res) => {
   }
 };
 
-export const descargarContratoPDF = async (req, res) => {
+export const generarContratoPDF = async (id) => {
   try {
-    const { id } = req.params;
-    const venta = await Venta.findById(id).populate('idCliente').populate('idTrabajador').populate('idTipoLuna').populate('idMaterialLuna');
+
+    const venta = await Venta.findById(id).populate('idCliente').populate('idTrabajador');
 
     if (!venta) {
-      return res.status(404).json({ message: 'Venta no encontrada' });
+      throw new Error('Ingreso no encontrado');
     }
 
     const detallesVenta = await DetalleVenta.find({ idVenta: venta._id }).populate('idProducto');
@@ -94,14 +93,6 @@ export const descargarContratoPDF = async (req, res) => {
     const tratamientosSeleccionadosPrecio = detallesTratamiento.map(detalle => detalle.idTratamiento.precio?.toFixed(2) || 'N/A');
 
     const doc = new pdfkit({ size: 'Legal' });
-
-    const fileName = `contrato-${venta.codigo}-${venta.idCliente.apellidos}-${venta.estado}.pdf`;
-    const filePath = path.join(process.cwd(), 'temp', fileName);
-
-    await fs.mkdir(path.dirname(filePath), { recursive: true });
-
-    const stream = fs.createWriteStream(filePath);
-    doc.pipe(stream);
 
     // Encabezado
     doc.font('Helvetica').fontSize(18).text('Óptica NUEVO MUNDO', { align: 'center' });
@@ -171,7 +162,7 @@ export const descargarContratoPDF = async (req, res) => {
 
     doc.moveDown(1);
 
-    // Información de los ojos
+    // Información de los productos
     doc.fontSize(12).text('PRODUCTO(S)', 72, doc.y + 85, { underline: true });
     doc.moveDown(0.5);
 
@@ -229,25 +220,45 @@ export const descargarContratoPDF = async (req, res) => {
     doc.fontSize(10).text('Pasados los 30 días, no hay lugar a reclamo.', { align: 'center' });
     doc.text('La lámpara del cuerpo es el ojo; así que, si tu ojo es bueno, todo tu cuerpo estará lleno de luz. Mateo 6:22', { align: 'center' });
 
-    doc.end();
-
-    stream.on('finish', () => {
-      res.download(filePath, fileName, async (err) => {
-        if (err) {
-          console.error('Error al descargar el archivo:', err);
-          res.status(500).json({ message: 'Error al descargar el archivo PDF' });
-        } else {
-          try {
-            await fs.unlink(filePath);
-          } catch (err) {
-            console.error('Error al eliminar el archivo:', err);
-          }
-        }
+    // Finalizar y obtener el buffer del PDF generado
+    return await new Promise((resolve, reject) => {
+      const buffers = [];
+      doc.on('data', buffers.push.bind(buffers));
+      doc.on('end', () => {
+        const pdfData = Buffer.concat(buffers);
+        resolve(pdfData);
       });
+      doc.end();
     });
-  } catch (err) {
-    console.error('Error al generar el PDF:', err);
-    res.status(500).json({ message: 'Error al generar el PDF' });
+
+  } catch (error) {
+    console.error('Error al generar el PDF:', error);
+    throw error;
+  }
+};
+
+export const descargarContratoPDF = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const venta = await Venta.findById(id).populate('idCliente');
+
+    if (!venta) {
+      return res.status(404).json({ message: 'Venta no encontrada' });
+    }
+
+    const pdfBuffer = await generarContratoPDF(id);
+
+    if (!pdfBuffer) {
+      return res.status(500).json({ message: 'Error al generar el PDF de la venta' });
+    }
+
+    // Preparar la respuesta con el PDF como un Blob
+    res.setHeader('Content-Disposition', `attachment; filename="contrato-${venta.codigo}-${venta.idCliente.apellidos}-${venta.estado}.pdf;"`);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.send(pdfBuffer);
+  } catch (error) {
+    console.error('Error al descargar el PDF de la venta:', error);
+    res.status(500).json({ message: 'Error al descargar el PDF de la venta', error });
   }
 };
 
@@ -263,8 +274,15 @@ const transporter = nodemailer.createTransport({
 });
 
 // Función para enviar el correo electrónico
-const enviarCorreoCliente = async (correoCliente, estadoVenta, venta) => {
+const enviarCorreoCliente = async (correoCliente, estadoVenta, idVenta) => {
   try {
+
+    const venta = await Venta.findById(idVenta).populate('idCliente');
+    if (!venta) {
+      throw new Error(`Venta con ID ${idVenta} no encontrado`);
+    }
+
+    const pdfBuffer = await generarContratoPDF(idVenta);
 
     // Formatear la fecha de creación
     const fechaCreacion = new Date(venta.fechaCreacion);
@@ -325,15 +343,19 @@ const enviarCorreoCliente = async (correoCliente, estadoVenta, venta) => {
           </div>
         </body>
         </html>
-        `,
+        `, attachments: [
+        {
+          filename: `contrato-${venta.codigo}-${venta.idCliente.apellidos}-${venta.estado}.pdf`,
+          content: pdfBuffer,
+        },
+      ],
     };
 
     // Envía el correo electrónico
     await transporter.sendMail(mailOptions);
-
-    console.log('Correo electrónico enviado correctamente');
+    console.log('Correo enviado exitosamente');
   } catch (error) {
-    console.error('Error al enviar el correo electrónico', error);
+    console.error('Error al enviar el correo con el PDF adjunto:', error);
     throw error;
   }
 };
@@ -564,5 +586,22 @@ export const actualizarEstadoVenta = async (req, res) => {
     res.status(200).json({ message: `Estado de la venta actualizado correctamente`, venta: ventaActualizada });
   } catch (error) {
     res.status(500).json({ message: 'Error al actualizar el estado de la venta', error });
+  }
+};
+
+export const obtenerVentasMesActual = async (req, res) => {
+  try {
+    const ventas = await Venta.find().populate('idCliente').populate('idTrabajador');
+    const fechaActual = new Date();
+    const mesActual = fechaActual.getMonth();
+
+    const ventasMesActual = ventas.filter(venta => {
+      const fechaVenta = new Date(venta.fechaCreacion);
+      return fechaVenta.getMonth() === mesActual && fechaVenta.getFullYear() === fechaActual.getFullYear();
+    });
+
+    res.status(200).json({ ventas: ventasMesActual });
+  } catch (error) {
+    res.status(500).json({ message: 'Error al obtener las ventas', error });
   }
 };
