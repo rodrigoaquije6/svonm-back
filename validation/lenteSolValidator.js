@@ -4,7 +4,8 @@ import LenteSol from "../models/LentesSol.js";
 const validationLenteSol = () => {
     return [
         check('codigo').notEmpty().withMessage('El código es obligatorio'),
-        check('codigo').matches(/^[A-Z0-9]+$/).withMessage('El código solo contiene mayúsculas y números'),
+        check('codigo').matches(/^[A-Z0-9]+$/).withMessage('El código debe contener solo letras mayúsculas y números')
+        .custom(value => !/\s/.test(value)).withMessage('El código no debe contener espacios en blanco'),
 
         check('nombre').notEmpty().withMessage('El nombre es obligatorio'),
         check('nombre').matches(/^[A-Za-zÁ-Úá-ú\s]+$/).withMessage('El nombre no contiene números ni simbolos'),
@@ -33,7 +34,7 @@ const validationLenteSol = () => {
 
         // Validación de código único
         check('codigo').custom(async (value, { req }) => {
-            const lenteSol= await LenteSol.findOne({ codigo: value });
+            const lenteSol = await LenteSol.findOne({ codigo: value });
             if (lenteSol && (req.params.id !== lenteSol._id.toString())) {
                 throw new Error('El producto ya está registrado');
             }
@@ -42,12 +43,12 @@ const validationLenteSol = () => {
         (req, res, next) => {
             const errors = validationResult(req);
 
-            if(!errors.isEmpty()) {
-                
+            if (!errors.isEmpty()) {
+
                 const checkError = errors.array().map(error => error.msg);
 
                 res.status(400).json({
-                    msg : checkError
+                    msg: checkError
                 })
                 return;
             }

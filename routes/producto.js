@@ -9,6 +9,7 @@ import {
     actualizarEstadoProducto
   } from "../controllers/productoController.js";
 import { authRequired } from "../middlewares/validateToken.js";
+import validationProducto from "../validation/productoValidator.js";
 
 const router = Router();
 

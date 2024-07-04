@@ -3,26 +3,35 @@ import Marca from "../models/Crear-marca.js";
 
 const validationMarca = () => {
     return [
-        check('nombre').notEmpty().withMessage('El nombre de la marca es obligatorio'),
-        check('nombre').matches(/^[A-Za-zÁ-Úá-ú\s]+$/).withMessage('El nombre de la marca no contiene números ni simbolos'),
+        check('nombre')
+            .notEmpty().withMessage('El nombre de la marca es obligatoria')
+            .isLength({ min: 2 }).withMessage('El nombre de la marca debe tener al menos 2 letras')
+            .matches(/^[A-Z][a-záéíóúüñÁÉÍÓÚÜÑ\s]*$/).withMessage('El nombre de la marca debe empezar con mayúscula seguida de minúsculas y no debe contener números ni símbolos')
+            .custom(value => !/\s/.test(value)).withMessage('El nombre de la marca no debe contener espacios en blanco'),
 
-        // Validación de nombre único
+        // Validación de nombre único (case-insensitive)
         check('nombre').custom(async (value, { req }) => {
-            const marca = await Marca.findOne({ nombre: value });
-            if (marca && (req.params.id !== marca._id.toString())) {
-                throw new Error('La marca ya está registrada');
+            const nombreNormalizado = value.toLowerCase();
+            const marcas = await Marca.find();
+            const existingMarcas = marcas.map(marca => marca.nombre.toLowerCase());
+
+            if (existingMarcas.some(existingMarca =>
+                existingMarca.includes(nombreNormalizado) ||
+                nombreNormalizado.includes(existingMarcas)
+            )) {
+                throw new Error('La marca ya está registrada o es muy similar a una marca existente');
             }
         }),
 
         (req, res, next) => {
             const errors = validationResult(req);
 
-            if(!errors.isEmpty()) {
-                
+            if (!errors.isEmpty()) {
+
                 const checkError = errors.array().map(error => error.msg);
 
                 res.status(400).json({
-                    msg : checkError
+                    msg: checkError
                 })
                 return;
             }
