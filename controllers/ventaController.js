@@ -20,7 +20,6 @@ const storage = new Storage({
 });
 
 const bucketName = 'lnd-urp-prueba2-bucket-bigquery-aquijerodrigo';
-const destinationFilename = 'ventasDeHoy.csv';
 const downloadsDir = path.join(os.homedir(), 'Downloads');
 
 export const generarCsvVentasDeHoy = async (req, res) => {
@@ -62,6 +61,112 @@ export const generarCsvVentasDeHoy = async (req, res) => {
 
     const filePath = path.join(downloadsDir, 'ventasDeHoy.csv');
     fs.writeFileSync(filePath, csvContent);
+
+    const destinationFilename = 'ventasDeHoy.csv';
+
+    await storage.bucket(bucketName).upload(filePath, {
+      destination: destinationFilename
+    });
+
+    res.send('Archivo CSV generado y subido a GCS exitosamente');
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error al generar y subir el archivo CSV');
+  }
+};
+
+export const generarCsvVentasDeEsteMes = async (req, res) => {
+  try {
+    const hoy = new Date();
+    const primerDiaDelMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+    const últimoDiaDelMes = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0);
+
+    const ventasDelMes = await Venta.find({
+      fechaCreacion: {
+        $gte: primerDiaDelMes,
+        $lte: últimoDiaDelMes,
+      }
+    }).populate('idCliente').populate('idTrabajador');
+
+    const csvWriter = createObjectCsvWriter({
+      path: path.join(downloadsDir, '/ventasDelMes.csv'),
+      header: [
+        { id: 'id' },
+        { id: 'cliente' },
+        { id: 'trabajador' },
+        { id: 'estado' },
+        { id: 'total' },
+        { id: 'fecha' },
+      ]
+    });
+
+    const csvRows = ventasDelMes.map(venta => ({
+      id: venta.codigo,
+      cliente: `${venta.idCliente.nombres} ${venta.idCliente.apellidos}`,
+      trabajador: `${venta.idTrabajador.nombres} ${venta.idTrabajador.apellidos}`,
+      estado: venta.estado,
+      total: venta.total,
+      fecha: format(new Date(venta.fechaCreacion), 'yyyy-MM-dd'),
+    }));
+
+    const csvContent = csvRows.map(row => Object.values(row).join(',')).join('\n');
+
+    const filePath = path.join(downloadsDir, 'ventasDelMes.csv');
+    fs.writeFileSync(filePath, csvContent);
+
+    const destinationFilename = 'ventasDeEsteMes.csv';
+
+    await storage.bucket(bucketName).upload(filePath, {
+      destination: destinationFilename
+    });
+
+    res.send('Archivo CSV generado y subido a GCS exitosamente');
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error al generar y subir el archivo CSV');
+  }
+};
+
+export const generarCsvVentasDeEsteAnio = async (req, res) => {
+  try {
+    const hoy = new Date();
+    const primerDiaDelAño = new Date(hoy.getFullYear(), 0, 1);
+    const últimoDiaDelAño = new Date(hoy.getFullYear(), 11, 31, 23, 59, 59);
+
+    const ventasDelAño = await Venta.find({
+      fechaCreacion: {
+        $gte: primerDiaDelAño,
+        $lte: últimoDiaDelAño,
+      }
+    }).populate('idCliente').populate('idTrabajador');
+
+    const csvWriter = createObjectCsvWriter({
+      path: path.join(downloadsDir, '/ventasDelAño.csv'),
+      header: [
+        { id: 'id' },
+        { id: 'cliente' },
+        { id: 'trabajador' },
+        { id: 'estado' },
+        { id: 'total' },
+        { id: 'fecha' },
+      ]
+    });
+
+    const csvRows = ventasDelAño.map(venta => ({
+      id: venta.codigo,
+      cliente: venta.idCliente ? `${venta.idCliente.nombres} ${venta.idCliente.apellidos}` : '',
+      trabajador: venta.idTrabajador ? `${venta.idTrabajador.nombres} ${venta.idTrabajador.apellidos}` : '',
+      estado: venta.estado,
+      total: venta.total,
+      fecha: format(new Date(venta.fechaCreacion), 'yyyy-MM-dd'),
+    }));
+
+    const csvContent = csvRows.map(row => Object.values(row).join(',')).join('\n');
+
+    const filePath = path.join(downloadsDir, 'ventasDelAño.csv');
+    fs.writeFileSync(filePath, csvContent);
+
+    const destinationFilename = 'ventasDeEsteAño.csv';
 
     await storage.bucket(bucketName).upload(filePath, {
       destination: destinationFilename
@@ -536,22 +641,92 @@ export const obtenerVenta = async (req, res) => {
 
 export const actualizarVenta = async (req, res) => {
   try {
-    const ventaId = req.params.id; // Obtener el ID de la venta de los parámetros de la solicitud
-    const ventaActualizada = req.body; // Obtener los datos actualizados de la venta del cuerpo de la solicitud
-
-    const ventaExistente = await Venta.findById(ventaId);
+    const { idVenta } = req.params;
+    const {
+      oDEsfera, oDCilindro, oDEje, oDAvLejos, oDAvCerca, oDAdd, oDAltura, oDCurva,
+      oIEsfera, oICilindro, oIEje, oIAvLejos, oIAvCerca, oIAdd, oIAltura, oICurva,
+      dipLejos, dipCerca, observacion, aCuenta, saldo, total, estado,
+      idCliente, idTrabajador, idTipoLuna, idMaterialLuna,
+      productosAgregados, tratamientosAgregados
+    } = req.body;
 
     // Verificar si la venta existe
+    const ventaExistente = await Venta.findById(idVenta);
     if (!ventaExistente) {
-      return res.status(404).json({ message: `La venta con código ${ventaExistente.codigo} no existe` });
+      return res.status(404).json({ message: `La venta con ID ${idVenta} no existe` });
     }
 
     // Actualizar los datos de la venta
-    await Venta.findByIdAndUpdate(ventaId, ventaActualizada, { new: true });
+    ventaExistente.oDEsfera = oDEsfera;
+    ventaExistente.oDCilindro = oDCilindro;
+    ventaExistente.oDEje = oDEje;
+    ventaExistente.oDAvLejos = oDAvLejos;
+    ventaExistente.oDAvCerca = oDAvCerca;
+    ventaExistente.oDAdd = oDAdd;
+    ventaExistente.oDAltura = oDAltura;
+    ventaExistente.oDCurva = oDCurva;
+    ventaExistente.oIEsfera = oIEsfera;
+    ventaExistente.oICilindro = oICilindro;
+    ventaExistente.oIEje = oIEje;
+    ventaExistente.oIAvLejos = oIAvLejos;
+    ventaExistente.oIAvCerca = oIAvCerca;
+    ventaExistente.oIAdd = oIAdd;
+    ventaExistente.oIAltura = oIAltura;
+    ventaExistente.oICurva = oICurva;
+    ventaExistente.dipLejos = dipLejos;
+    ventaExistente.dipCerca = dipCerca;
+    ventaExistente.observacion = observacion;
+    ventaExistente.aCuenta = aCuenta;
+    ventaExistente.saldo = saldo;
+    ventaExistente.total = total;
+    ventaExistente.estado = estado;
+    ventaExistente.idCliente = idCliente;
+    ventaExistente.idTrabajador = idTrabajador;
+    ventaExistente.idTipoLuna = idTipoLuna;
+    ventaExistente.idMaterialLuna = idMaterialLuna;
 
-    res.status(200).json({ message: `Venta con con código ${ventaExistente.codigo} actualizada con éxito`, venta: ventaActualizada });
+    // Guardar los cambios en la venta
+    const ventaActualizada = await ventaExistente.save();
+
+    // Actualizar los detalles de venta
+    // Eliminar los detalles de venta existentes
+    await DetalleVenta.deleteMany({ idVenta });
+
+    // Crear los nuevos detalles de venta
+    const detalleVentasPromises = productosAgregados.map(async producto => {
+      const detalleVenta = new DetalleVenta({
+        cantidad: producto.cantidad,
+        descuento: producto.descuento,
+        total: producto.total,
+        idVenta: ventaActualizada._id,
+        idProducto: producto._id
+      });
+      await detalleVenta.save();
+
+      // Actualizar el stock del producto vendido
+      const productoExistente = await Producto.findById(producto._id);
+      productoExistente.stock -= producto.cantidad;
+      await productoExistente.save();
+    });
+
+    // Actualizar los detalles de tratamiento
+    
+    // Crear los nuevos detalles de tratamiento
+    const detalleTratamientosPromises = tratamientosAgregados.map(async tratamiento => {
+      const detalleTratamiento = new DetalleTratamiento({
+        idTratamiento: tratamiento._id,
+        idVenta: ventaActualizada._id
+      });
+      await detalleTratamiento.save();
+    });
+
+    // Ejecutar todas las promesas
+    await Promise.all([...detalleVentasPromises, ...detalleTratamientosPromises]);
+
+    res.status(200).json({ message: 'Venta actualizada con éxito', venta: ventaActualizada });
   } catch (error) {
-    res.status(500).json({ message: 'Error al actualizar la venta', error });
+    console.error('Error al editar la venta:', error);
+    res.status(500).json({ message: 'Error al editar la venta', error });
   }
 };
 
@@ -591,17 +766,21 @@ export const actualizarEstadoVenta = async (req, res) => {
 
 export const obtenerVentasMesActual = async (req, res) => {
   try {
-    const ventas = await Venta.find().populate('idCliente').populate('idTrabajador');
     const fechaActual = new Date();
     const mesActual = fechaActual.getMonth();
+    const yearActual = fechaActual.getFullYear();
 
-    const ventasMesActual = ventas.filter(venta => {
-      const fechaVenta = new Date(venta.fechaCreacion);
-      return fechaVenta.getMonth() === mesActual && fechaVenta.getFullYear() === fechaActual.getFullYear();
-    });
+    // Ejemplo de consulta a MongoDB para obtener ventas del mes actual
+    const ventasMesActual = await Venta.find({
+      fechaCreacion: {
+        $gte: new Date(yearActual, mesActual, 1),
+        $lt: new Date(yearActual, mesActual + 1, 1)
+      }
+    }).populate('idCliente').populate('idTrabajador');
 
     res.status(200).json({ ventas: ventasMesActual });
   } catch (error) {
+    console.error('Error al obtener las ventas:', error);
     res.status(500).json({ message: 'Error al obtener las ventas', error });
   }
 };

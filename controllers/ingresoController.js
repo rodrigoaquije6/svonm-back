@@ -400,14 +400,14 @@ export const actualizarEstadoIngreso = async (req, res) => {
 
 export const ejecutarAutomatizacion = async (req, res) => {
     try {
-        const { trabajadorId, descuento } = req.body;
+        const { trabajadorId } = req.body;
         const trabajador = await Trabajador.findById(trabajadorId);
 
         if (!trabajador) {
             return res.status(404).json({ message: `Trabajador con ID ${trabajadorId} no encontrado` });
         }
 
-        await automatizarOrdenesCompra(trabajador, descuento);
+        await automatizarOrdenesCompra(trabajador);
         res.status(200).json({ message: 'Automatización de órdenes de compra completada con éxito.' });
     } catch (error) {
         console.error('Error al ejecutar automatización:', error);
@@ -416,7 +416,7 @@ export const ejecutarAutomatizacion = async (req, res) => {
 };
 
 // Función para automatizar órdenes de compra
-export const automatizarOrdenesCompra = async (trabajador, descuento) => {
+export const automatizarOrdenesCompra = async (trabajador) => {
     try {
         const fechaActual = new Date();
         const fechaProximaSemana = new Date(fechaActual);
@@ -447,7 +447,7 @@ export const automatizarOrdenesCompra = async (trabajador, descuento) => {
             }
 
             // Calcular la cantidad a ordenar
-            const cantidadOrdenar = Math.max(0, 5 - producto.stock);
+            const cantidadOrdenar = Math.max(0, 6 - producto.stock);
 
             // Agregar producto a la lista del proveedor
             ordenesPorProveedor[proveedorId].productos.push({
@@ -463,6 +463,22 @@ export const automatizarOrdenesCompra = async (trabajador, descuento) => {
         // Iterar sobre las órdenes por proveedor y generar las órdenes de compra
         for (const proveedorId in ordenesPorProveedor) {
             const ordenProveedor = ordenesPorProveedor[proveedorId];
+            
+            // Determinar el descuento dinámicamente según la cantidad de productos
+            let descuento;
+            const cantidadProductos = ordenProveedor.productos.reduce((total, producto) => total + producto.cantidad, 0);
+
+            if (cantidadProductos < 10) {
+                descuento = 0;
+            } else if (cantidadProductos >= 10 && cantidadProductos < 20) {
+                descuento = 5;
+            } else if (cantidadProductos >= 20 && cantidadProductos < 50) {
+                descuento = 10;
+            } else if (cantidadProductos >= 50 && cantidadProductos < 100) {
+                descuento = 15;
+            } else {
+                descuento = 20;
+            }
 
             // Calcular subtotal y total para la orden de compra del proveedor
             let subtotalOrdenProveedor = 0;
@@ -519,3 +535,212 @@ export const automatizarOrdenesCompra = async (trabajador, descuento) => {
         throw error;
     }
 };
+
+// Función para obtener proveedores con productos cerca del stock mínimo y no en ingresos pendientes
+export const obtenerProveedoresConProductos = async (req, res) => {
+    try {
+        // Buscar productos con stock cerca del mínimo y estado activo
+        const productosNearMinStock = await Producto.find({
+            $expr: {
+                $lte: [
+                    "$stock",
+                    { $add: ["$stockMinimo", 1] } // Ajusta según tu lógica específica
+                ]
+            },
+            estado: 'Activo'
+        }).populate('proveedor');
+
+        // Agrupar productos por proveedor si es necesario
+        const proveedoresConProductos = {};
+
+        // Iterar sobre los productos y agrupar por proveedor
+        productosNearMinStock.forEach(producto => {
+            const proveedorId = producto.proveedor._id.toString();
+
+            if (!proveedoresConProductos[proveedorId]) {
+                proveedoresConProductos[proveedorId] = {
+                    proveedor: producto.proveedor,
+                    productos: []
+                };
+            }
+
+            proveedoresConProductos[proveedorId].productos.push(producto);
+        });
+
+        // Convertir el objeto a un arreglo antes de enviarlo como respuesta
+        const proveedoresConProductosArray = Object.values(proveedoresConProductos);
+
+        res.json(proveedoresConProductosArray);
+    } catch (error) {
+        console.error('Error al obtener proveedores con productos:', error);
+        res.status(500).json({ message: 'Error al obtener proveedores con productos.', error });
+    }
+};
+
+/*export const ejecutarAutomatizacion = async (req, res) => {
+    try {
+        const { trabajadorId, proveedorId, descuento } = req.body;
+
+        // Verificar si el trabajador existe
+        const trabajador = await Trabajador.findById(trabajadorId);
+        if (!trabajador) {
+            return res.status(404).json({ message: `Trabajador con ID ${trabajadorId} no encontrado` });
+        }
+
+        // Ejecutar la automatización para el proveedor específico
+        await automatizarOrdenesCompra(trabajadorId, proveedorId, descuento);
+
+        res.status(200).json({ message: 'Automatización de órdenes de compra completada con éxito.' });
+    } catch (error) {
+        console.error('Error al ejecutar automatización:', error);
+        res.status(500).json({ message: 'Error al ejecutar automatización de órdenes de compra.', error });
+    }
+};
+
+// Función para automatizar órdenes de compra para un proveedor específico
+export const automatizarOrdenesCompra = async (trabajadorId, proveedorId, descuento) => {
+    try {
+        const fechaActual = new Date();
+        const fechaProximaSemana = new Date(fechaActual);
+        fechaProximaSemana.setDate(fechaProximaSemana.getDate() + 7);
+
+        // Buscar productos del proveedor específico con stock mínimo
+        const productosNearMinStock = await Producto.find({
+            'proveedor': proveedorId, // Filtrar por el proveedor específico
+            $expr: {
+                $lte: [
+                    "$stock",
+                    { $add: ["$stockMinimo", 1] }
+                ]
+            },
+            estado: 'Activo'
+        });
+
+        if (productosNearMinStock.length === 0) {
+            console.log(`No hay productos para el proveedor con ID ${proveedorId} cerca del stock mínimo.`);
+            return;
+        }
+
+        // Calcular subtotal y total para la orden de compra del proveedor
+        let subtotalOrdenProveedor = 0;
+        const detallesIngreso = [];
+
+        productosNearMinStock.forEach(producto => {
+            const cantidadOrdenar = Math.max(0, 6 - producto.stock);
+            subtotalOrdenProveedor += cantidadOrdenar * producto.precio;
+
+            // Guardar detalles del ingreso
+            detallesIngreso.push({
+                cantidad: cantidadOrdenar,
+                total: cantidadOrdenar * producto.precio,
+                idProducto: producto._id
+            });
+        });
+
+        const impuesto = 18;
+        const totalOrdenProveedor = subtotalOrdenProveedor * (1 + impuesto / 100) * (1 - descuento / 100);
+
+        // Crear el ingreso para la orden de compra
+        const codigoIngreso = await obtenerProximoCodigoIngreso(); // Asumiendo que tienes una función para obtener el próximo código de ingreso
+
+        const ingreso = new Ingreso({
+            codigo: codigoIngreso,
+            observacion: 'Por favor respetar la fecha de entrega estimada. ¡Muchas Gracias!',
+            descuento: descuento,
+            impuesto: impuesto,
+            subtotal: subtotalOrdenProveedor,
+            total: totalOrdenProveedor,
+            fechaEntregaEstimada: fechaProximaSemana,
+            estado: 'Pendiente',
+            idProveedor: proveedorId,
+            idTrabajador: trabajadorId,
+        });
+
+        const savedIngreso = await ingreso.save();
+
+        // Crear detalles de ingreso para los productos del proveedor
+        const promises = detallesIngreso.map(async detalle => {
+            const detalleIngreso = new DetalleIngreso({
+                cantidad: detalle.cantidad,
+                total: detalle.total,
+                idIngreso: savedIngreso._id,
+                idProducto: detalle.idProducto,
+            });
+
+            await detalleIngreso.save();
+        });
+
+        await Promise.all(promises);
+
+        // Generar PDF de ingreso y enviar correo al proveedor
+        await generarPDFIngreso(savedIngreso._id);
+        const proveedor = await Proveedor.findById(proveedorId);
+        await enviarCorreoProveedor(proveedor.correo, savedIngreso._id);
+
+        console.log(`Órdenes de compra automáticas generadas con éxito para el proveedor con ID ${proveedorId}.`);
+    } catch (error) {
+        console.error('Error al generar órdenes de compra automáticas:', error);
+        throw error;
+    }
+};
+
+// Función para obtener proveedores con productos cerca del stock mínimo y no en ingresos pendientes
+export const obtenerProveedoresConProductos = async (req, res) => {
+    try {
+        // Buscar productos con stock cerca del mínimo y estado activo
+        const productosNearMinStock = await Producto.find({
+            $expr: {
+                $lte: [
+                    "$stock",
+                    { $add: ["$stockMinimo", 1] } // Ajusta según tu lógica específica
+                ]
+            },
+            estado: 'Activo'
+        }).populate('proveedor');
+
+        // Obtener los IDs de los productos cerca del stock mínimo
+        const productosIds = productosNearMinStock.map(producto => producto._id);
+
+        // Buscar detalles de ingreso con los IDs de los productos encontrados y estado pendiente
+        const ingresosPendientes = await DetalleIngreso.find({
+            idProducto: { $in: productosIds },
+            "idIngreso.estado": "Pendiente"
+        }).populate('idIngreso');
+
+        // Crear un conjunto de IDs de productos en ingresos pendientes
+        const productosEnIngresosPendientesIds = new Set(ingresosPendientes.map(detalle => detalle.idProducto.toString()));
+
+        // Filtrar productos que no están en ingresos pendientes
+        const productosFiltrados = [];
+
+        productosNearMinStock.forEach(producto => {
+            if (!productosEnIngresosPendientesIds.has(producto._id.toString())) {
+                productosFiltrados.push(producto);
+            }
+        });
+
+        // Agrupar productos por proveedor si es necesario
+        const proveedoresConProductos = {};
+
+        productosFiltrados.forEach(producto => {
+            const proveedorId = producto.proveedor._id.toString();
+
+            if (!proveedoresConProductos[proveedorId]) {
+                proveedoresConProductos[proveedorId] = {
+                    proveedor: producto.proveedor,
+                    productos: []
+                };
+            }
+
+            proveedoresConProductos[proveedorId].productos.push(producto);
+        });
+
+        // Convertir el objeto a un arreglo antes de enviarlo como respuesta
+        const proveedoresConProductosArray = Object.values(proveedoresConProductos);
+
+        res.json(proveedoresConProductosArray);
+    } catch (error) {
+        console.error('Error al obtener proveedores con productos:', error);
+        res.status(500).json({ message: 'Error al obtener proveedores con productos.', error });
+    }
+};*/
