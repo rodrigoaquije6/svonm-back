@@ -3,42 +3,29 @@ import LenteSol from "../models/LentesSol.js";
 
 const validationLenteSol = () => {
     return [
-        check('codigo').notEmpty().withMessage('El código es obligatorio'),
-        check('codigo').matches(/^[A-Z0-9]+$/).withMessage('El código debe contener solo letras mayúsculas y números')
-        .custom(value => !/\s/.test(value)).withMessage('El código no debe contener espacios en blanco'),
+        check('genero')
+            .notEmpty().withMessage('El género es obligatorio'),
 
-        check('nombre').notEmpty().withMessage('El nombre es obligatorio'),
-        check('nombre').matches(/^[A-Za-zÁ-Úá-ú\s]+$/).withMessage('El nombre no contiene números ni simbolos'),
+        check('forma')
+            .notEmpty().withMessage('La forma del lente de sol es obligatoria')
+            .isLength({ min: 4 }).withMessage('La forma del lente de sol debe tener al menos 4 letras')
+            .matches(/^[A-ZÁÉÍÓÚÜÑ][a-záéíóúüñ]+(\s[A-ZÁÉÍÓÚÜÑ][a-záéíóúüñ]+)*$/).withMessage('La forma del lente de sol debe empezar con mayúscula seguida de minúsculas, y cada palabra debe comenzar con mayúscula')
+            .custom(value => !/^\s|\s$/.test(value)).withMessage('La forma del lente de sol no debe tener espacios al inicio ni al final'),
 
-        check('precio').notEmpty().withMessage('El precio es obligatorio'),
-        check('precio').isFloat({ min: 0 }).withMessage('El precio debe ser mayor o igual a 0'),
+        check('color')
+            .notEmpty().withMessage('El color de la montura es obligatorio')
+            .isLength({ min: 4 }).withMessage('El color de la montura debe tener al menos 4 letras')
+            .matches(/^[A-ZÁÉÍÓÚÜÑ][a-záéíóúüñ]+(\s[A-ZÁÉÍÓÚÜÑ][a-záéíóúüñ]+)*$/).withMessage('El color de la montura debe empezar con mayúscula seguida de minúsculas, y cada palabra debe comenzar con mayúscula')
+            .custom(value => !/^\s|\s$/.test(value)).withMessage('El color de la montura no debe tener espacios al inicio ni al final'),
 
-        check('imagen').notEmpty().withMessage('La imagen es obligaria'),
-        check('imagen').matches(/^(https?|ftp):\/\/[^\s\/$.?#].[^\s]*$/).withMessage('Ingresar un url de imagen correcto'),
+        check('colorlente')
+            .notEmpty().withMessage('El color del lente es obligatorio')
+            .isLength({ min: 4 }).withMessage('El color del lente debe tener al menos 4 letras')
+            .matches(/^[A-ZÁÉÍÓÚÜÑ][a-záéíóúüñ]+(\s[A-ZÁÉÍÓÚÜÑ][a-záéíóúüñ]+)*$/).withMessage('El color del lente debe empezar con mayúscula seguida de minúsculas, y cada palabra debe comenzar con mayúscula')
+            .custom(value => !/^\s|\s$/.test(value)).withMessage('El color del lente no debe tener espacios al inicio ni al final'),
 
-        check('marca').notEmpty().withMessage('La marca es obligatoria'),
-
-        check('genero').notEmpty().withMessage('El género es obligario'),
-
-        check('forma').notEmpty().withMessage('La forma de la montura es obligatorio'),
-        check('forma').matches(/^[A-Za-zÁ-Úá-ú\s]+$/).withMessage('La forma no contiene números ni símbolos'),
-
-        check('color').notEmpty().withMessage('El color de la montura es obligatorio'),
-        check('color').matches(/^[A-Za-zÁ-Úá-ú\s]+$/).withMessage('El color no contiene números ni símbolos'),
-
-        check('colorlente').notEmpty().withMessage('El color del lente es obligatorio'),
-        check('colorlente').matches(/^[A-Za-zÁ-Úá-ú\s]+$/).withMessage('El color del lente no contiene números ni símbolos'),
-
-        check('protuv').notEmpty().withMessage('La protección UV es obligatoria'),
-
-
-        // Validación de código único
-        check('codigo').custom(async (value, { req }) => {
-            const lenteSol = await LenteSol.findOne({ codigo: value });
-            if (lenteSol && (req.params.id !== lenteSol._id.toString())) {
-                throw new Error('El producto ya está registrado');
-            }
-        }),
+        check('protuv')
+            .notEmpty().withMessage('La protección UV es obligatoria'),
 
         (req, res, next) => {
             const errors = validationResult(req);

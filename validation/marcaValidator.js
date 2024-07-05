@@ -4,25 +4,27 @@ import Marca from "../models/Crear-marca.js";
 const validationMarca = () => {
     return [
         check('nombre')
-            .notEmpty().withMessage('El nombre de la marca es obligatoria')
-            .isLength({ min: 2 }).withMessage('El nombre de la marca debe tener al menos 2 letras')
-            .matches(/^[A-Z][a-záéíóúüñÁÉÍÓÚÜÑ\s]*$/).withMessage('El nombre de la marca debe empezar con mayúscula seguida de minúsculas y no debe contener números ni símbolos')
-            .custom(value => !/\s/.test(value)).withMessage('El nombre de la marca no debe contener espacios en blanco'),
+            .notEmpty().withMessage('El nombre de la marca es obligatorio')
+            .isLength({ min: 4 }).withMessage('El nombre de la marca debe tener al menos 4 caracteres')
+            .matches(/^[A-ZÁÉÍÓÚÜÑ][a-záéíóúüñ]+(\s[A-ZÁÉÍÓÚÜÑ][a-záéíóúüñ]+)*$/)
+            .withMessage('El nombre de la marca debe empezar con mayúscula seguida de minúsculas, y cada palabra debe comenzar con mayúscula')
+            .custom(value => !/^\s|\s$/.test(value)).withMessage('El nombre de la marca no debe tener espacios al inicio ni al final'),
 
-        // Validación de nombre único (case-insensitive)
+        // Validación de nombre único (case-sensitive)
         check('nombre').custom(async (value, { req }) => {
-            const nombreNormalizado = value.toLowerCase();
-            const marcas = await Marca.find();
-            const existingMarcas = marcas.map(marca => marca.nombre.toLowerCase());
+            // Buscar marca sin considerar la capitalización
+            let marca = await Marca.findOne({ nombre: value }).collation({ locale: 'es', strength: 2 });
 
-            if (existingMarcas.some(existingMarca =>
-                existingMarca.includes(nombreNormalizado) ||
-                nombreNormalizado.includes(existingMarcas)
-            )) {
-                throw new Error('La marca ya está registrada o es muy similar a una marca existente');
+            if (marca && (req.params.id !== marca._id.toString())) {
+                throw new Error('La marca ya está registrada');
+            }
+
+            // Verificar también el nombre en minúsculas
+            const marcaLower = await Marca.findOne({ nombre: value.toLowerCase() });
+            if (marcaLower && (req.params.id !== marcaLower._id.toString())) {
+                throw new Error('La marca ya está registrada');
             }
         }),
-
         (req, res, next) => {
             const errors = validationResult(req);
 

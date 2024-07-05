@@ -7,13 +7,13 @@ import {
   eliminarProveedor
 } from "../controllers/proveedorController.js";
 import { authRequired } from "../middlewares/validateToken.js";
-import validationTrabajador from "../validation/trabajadorValidator.js";
+import validationProveedor from "../validation/proveedorValidator.js";
 
 const router = Router();
 
-router.post('/proveedor', authRequired, crearProveedor);
+router.post('/proveedor', authRequired, validationProveedor(), crearProveedor);
 router.get('/proveedor', authRequired, obtenerProveedores);
-router.put('/proveedor/:id', authRequired, actualizarProveedor);
+router.put('/proveedor/:id', authRequired, validationProveedor(), actualizarProveedor);
 router.delete('/proveedor/:id', authRequired, eliminarProveedor);
 router.get('/proveedor/:id', authRequired, obtenerProveedor);
 

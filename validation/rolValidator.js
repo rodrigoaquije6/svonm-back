@@ -6,23 +6,17 @@ const validationRol = () => {
         check('nombre')
             .notEmpty().withMessage('El nombre del rol es obligatorio')
             .isLength({ min: 4 }).withMessage('El nombre del rol debe tener al menos 4 letras')
-            .matches(/^[A-Z][a-záéíóúüñÁÉÍÓÚÜÑ\s]*$/).withMessage('El nombre del rol debe empezar con mayúscula seguida de minúsculas y no debe contener números ni símbolos')
-            .custom(value => !/\s/.test(value)).withMessage('El nombre del rol no debe contener espacios en blanco'),
+            .matches(/^[A-ZÁÉÍÓÚÜÑ][a-záéíóúüñ]+(\s[A-ZÁÉÍÓÚÜÑ][a-záéíóúüñ]+)*$/).withMessage('El nombre del rol debe empezar con mayúscula seguida de minúsculas, y cada palabra debe comenzar con mayúscula')
+            .custom(value => !/^\s|\s$/.test(value)).withMessage('El nombre del rol no debe tener espacios al inicio ni al final'),
 
-        // Validación de nombre único (case-insensitive)
+        // Validación de nombre único (case-sensitive)
         check('nombre').custom(async (value, { req }) => {
-            const nombreNormalizado = value.toLowerCase();
-            const roles = await Rol.find();
-            const existingRoles = roles.map(role => role.nombre.toLowerCase());
+            const rol = await Rol.findOne({ nombre: value });
 
-            if (existingRoles.some(existingRole =>
-                existingRole.includes(nombreNormalizado) ||
-                nombreNormalizado.includes(existingRoles)
-            )) {
-                throw new Error('El rol ya está registrado o es muy similar a un rol existente');
+            if (rol && (req.params.id !== rol._id.toString())) {
+                throw new Error('El rol ya está registrado');
             }
         }),
-
 
         (req, res, next) => {
             const errors = validationResult(req);

@@ -7,13 +7,13 @@ import {
     eliminarLuna
   } from "../controllers/lunaController.js";
 import { authRequired } from "../middlewares/validateToken.js";
-import validationLuna from "../validation/lunaValidator.js";
+import validationMaterialLuna from "../validation/materialLunaValidator.js";
 
 const router = Router();
 
-  router.post('/luna', authRequired, validationLuna(), crearLuna);
+  router.post('/luna', authRequired, validationMaterialLuna(), crearLuna);
   router.get('/luna', authRequired, obtenerLunas);
-  router.put('/luna/:id', authRequired, validationLuna(), actualizarLuna);
+  router.put('/luna/:id', authRequired, validationMaterialLuna(), actualizarLuna);
   router.get('/luna/:id', authRequired, obtenerLuna);
   router.delete('/luna/:id', authRequired, eliminarLuna);
 
