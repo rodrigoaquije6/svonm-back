@@ -13,9 +13,9 @@ import validationTrabajador from "../validation/trabajadorValidator.js";
 const router = Router();
 
 //api/trabajador
-router.post('/trabajador', authRequired, register); //validationTrabajador(),
+router.post('/trabajador', authRequired, validationTrabajador(), register); //validationTrabajador(),
 router.get('/trabajador', authRequired, getUsers);
-router.put('/trabajador/:id', authRequired, updateUser);
+router.put('/trabajador/:id', authRequired, validationTrabajador(), updateUser);
 router.delete('/trabajador/:id', authRequired, deleteUser);
 router.get('/trabajador/:id', authRequired, getUser);
 router.put('/trabajador/:id/estado', actualizarEstadoTrabajador);

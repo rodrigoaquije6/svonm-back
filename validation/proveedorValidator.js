@@ -25,26 +25,29 @@ const proveedorValidator = () => {
             .notEmpty().withMessage('El nombre del contacto es obligatorio')
             .isLength({ min: 4 }).withMessage('El nombre del contacto debe tener al menos 4 letras')
             .matches(/^[A-ZÁÉÍÓÚÜÑ][a-záéíóúüñ]+(\s[A-ZÁÉÍÓÚÜÑ][a-záéíóúüñ]+)*$/)
-            .withMessage('El nombre del contacto debe empezar con mayúscula seguida de minúsculas, y cada palabra debe comenzar con mayúscula')
+            .withMessage('El nombre del contacto debe empezar con mayúscula seguida de minúsculas, y si tiene otros nombres debe comenzar con mayúscula')
             .custom(value => !/^\s|\s$/.test(value)).withMessage('El nombre del contacto no debe tener espacios al inicio ni al final'),
 
         check('apellidoContacto')
             .notEmpty().withMessage('El apellido del contacto es obligatorio')
             .isLength({ min: 4 }).withMessage('El apellido del contacto debe tener al menos 4 letras')
-            .matches(/^[A-ZÁÉÍÓÚÜÑ][a-záéíóúüñ]+(\s[A-ZÁÉÍÓÚÜÑ][a-záéíóúüñ]+)*$/)
-            .withMessage('El apellido del contacto debe empezar con mayúscula seguida de minúsculas, y cada palabra debe comenzar con mayúscula')
+            .matches(/^[A-ZÁÉÍÓÚÜÑ][a-záéíóúüñ]+(\s[A-ZÁÉÍÓÚÜÑ][a-záéíóúüñ]+)?$/)
+            .withMessage('El apellido del contacto debe empezar con mayúscula seguida de minúsculas, y si tiene un segundo apellido que también que comience con mayúscula')
             .custom(value => !/^\s|\s$/.test(value)).withMessage('El apellido del contacto no debe tener espacios al inicio ni al final'),
 
         check('telefono')
             .notEmpty().withMessage('El teléfono del proveedor es obligatorio')
-            .isMobilePhone('es-PE').withMessage('El formato del teléfono no es válido'),
+            .isMobilePhone('es-PE').withMessage('El formato del teléfono no es válido')
+            .custom(value => !/^\s|\s$/.test(value)).withMessage('El teléfono no debe tener espacios al inicio ni al final'),
 
         check('direccion')
-            .notEmpty().withMessage('La dirección del proveedor es obligatoria'),
+            .notEmpty().withMessage('La dirección del proveedor es obligatoria')
+            .custom(value => !/^\s|\s$/.test(value)).withMessage('La dirección no debe tener espacios al inicio ni al final'),
 
         check('correo')
             .notEmpty().withMessage('El email del proveedor es obligatorio')
-            .isEmail().withMessage('El formato del email no es válido'),
+            .isEmail().withMessage('El formato del email no es válido')
+            .custom(value => !/^\s|\s$/.test(value)).withMessage('El correro no debe tener espacios al inicio ni al final'),
 
         // Validación de RUC único (case-sensitive)
         check('ruc').custom(async (value, { req }) => {

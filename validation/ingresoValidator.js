@@ -3,8 +3,9 @@ import { check, validationResult } from 'express-validator';
 const ingresoValidator = () => {
     return [
         check('observacion')
-            .notEmpty().withMessage('La observación es requerida')
-            .isString().withMessage('La observación debe ser texto'),
+            .notEmpty().withMessage('La observación del ingreso es obligatoria')
+            .custom(value => !(/^\s|\s$/.test(value)))
+            .withMessage('La observación no debe tener espacios en blanco al inicio o al final'),
 
         check('descuento')
             .notEmpty().withMessage('El descuento es obligatorio')

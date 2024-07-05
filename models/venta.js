@@ -13,7 +13,7 @@ const VentaSchema = mongoose.Schema({
         type: String,
     },
     oDEje: {
-        type: String,
+        type: Number,
     },
     oDAvLejos: {
         type: String,
@@ -22,7 +22,7 @@ const VentaSchema = mongoose.Schema({
         type: String,
     },
     oDAdd: {
-        type: Number,
+        type: String,
     },
     oDAltura: {
         type: Number,
@@ -37,7 +37,7 @@ const VentaSchema = mongoose.Schema({
         type: String,
     },
     oIEje: {
-        type: String,
+        type: Number,
     },
     oIAvLejos: {
         type: String,
@@ -46,7 +46,7 @@ const VentaSchema = mongoose.Schema({
         type: String,
     },
     oIAdd: {
-        type: Number,
+        type: String,
     },
     oIAltura: {
         type: Number,
@@ -55,10 +55,10 @@ const VentaSchema = mongoose.Schema({
         type: Number,
     },
     dipLejos: {
-        type: Number,
+        type: String,
     },
     dipCerca: {
-        type: Number,
+        type: String,
     },
     observacion: {
         type: String,

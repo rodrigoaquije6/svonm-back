@@ -118,7 +118,7 @@ export const getUsers = async (req, res) => {
 };
 
 export const getUser = async (req, res) => {
-  const userId = req.params.id;
+  const userId = req.params.id; // ID del usuario que se desea obtener
 
   try {
     const user = await User.findById(userId);
@@ -127,36 +127,51 @@ export const getUser = async (req, res) => {
       return res.status(404).json({ message: 'Usuario no encontrado' });
     }
 
-    // Obtener la contraseña desencriptada desde el cuerpo de la solicitud
-    const { password } = req.body;
+    // Filtrar los datos sensibles como la contraseña antes de enviar la respuesta
+    const { password, ...userData } = user.toObject();
 
-    if (!password) {
-      return res.status(400).json({ message: 'Se requiere la contraseña para acceder al perfil' });
+    if (userData.fecha_nac instanceof Date) {
+      userData.fecha_nac = userData.fecha_nac.toISOString().slice(0, 10);
     }
 
-    // Verificar si la contraseña proporcionada coincide con la contraseña almacenada
-    const isPasswordCorrect = await bcrypt.compare(password, user.password);
-
-    if (!isPasswordCorrect) {
-      return res.status(400).json({ message: 'Contraseña incorrecta' });
-    }
-
-    // Devolver los datos del usuario sin la contraseña
-    const { password: userPassword, ...userData } = user.toObject();
-    res.json(userData);
+    res.json(userData); // Enviar datos del usuario al cliente
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
 export const updateUser = async (req, res) => {
-  const user = await User.findByIdAndUpdate(req.params.id, req.body, {
-    new: true
-  });
+  const userId = req.params.id;
+  const { dni, nombres, apellidos, celular, fecha_nac, role, email, nuevaContrasena } = req.body;
 
-  if (!user) return res.status(404).json({ message: "Usuario no encontrado" });
+  try {
+    let user = await User.findById(userId);
 
-  res.json(user);
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    user.dni = dni;
+    user.nombres = nombres;
+    user.apellidos = apellidos;
+    user.celular = celular;
+    user.fecha_nac = fecha_nac;
+    user.role = role;
+    user.email = email;
+
+    // Si se proporciona una nueva contraseña, encriptarla y actualizarla
+    if (nuevaContrasena) {
+      const passwordHash = await bcrypt.hash(nuevaContrasena, 10);
+      user.password = passwordHash;
+    }
+
+    // Guardar los cambios en la base de datos
+    await user.save();
+
+    res.json({ message: 'Usuario actualizado correctamente' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
 export const deleteUser = async (req, res) => {

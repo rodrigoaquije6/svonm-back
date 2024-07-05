@@ -1,51 +1,311 @@
-import { check, validationResult } from 'express-validator';
+import { check, validationResult, body } from 'express-validator';
+import mongoose from 'mongoose';
 
 const ventaValidator = () => {
     return [
         // Campos del ojo derecho (derecho)
-        check('oDEsfera').exists().withMessage('La esfera derecha es requerida').isNumeric().withMessage('La esfera debe ser numérica'),
-        check('oDCilindro').exists().withMessage('El cilindro derecho es requerido').isNumeric().withMessage('El cilindro debe ser numérico'),
-        check('oDEje').exists().withMessage('El eje derecho es requerido').isNumeric().withMessage('El eje debe ser numérico'),
-        check('oDAvLejos').exists().withMessage('La agudeza visual lejos derecha es requerida').isNumeric().withMessage('La agudeza visual lejos debe ser numérica'),
-        check('oDAvCerca').exists().withMessage('La agudeza visual cerca derecha es requerida').isNumeric().withMessage('La agudeza visual cerca debe ser numérica'),
-        check('oDAdd').exists().withMessage('El add derecho es requerido').isNumeric().withMessage('El add debe ser numérico'),
-        check('oDAltura').exists().withMessage('La altura derecha es requerida').isNumeric().withMessage('La altura debe ser numérica'),
-        check('oDCurva').exists().withMessage('La curva derecha es requerida').isNumeric().withMessage('La curva debe ser numérica'),
+        check('oDEsfera')
+            .optional()
+            .custom((value, { req }) => {
+                if (value && !/^[+-]?\d+(\.\d{1,2})?$/.test(value)) {
+                    throw new Error('La esfera del ojo derecho debe ser un número válido en el formato. EJM: +3.44 o -2.44, y no contener espacios en blanco');
+                } if (value && !/^[+-]/.test(value)) {
+                    throw new Error('La esfera del ojo derecho debe comenzar con un signo + o -');
+                }
+                return true;
+            }),
+
+        check('oDCilindro')
+            .optional()
+            .custom((value, { req }) => {
+                if (value && !/^[+-]?\d+(\.\d{1,2})?$/.test(value)) {
+                    throw new Error('El cilindro del ojo derecho debe ser un número válido en el formato. EJM: +3.44 o -2.44, y no contener espacios en blanco');
+                } if (value && !/^[+-]/.test(value)) {
+                    throw new Error('El cilindro del ojo derecho debe comenzar con un signo + o -');
+                }
+                return true;
+            })
+            .trim(),
+
+        check('oDEje')
+            .optional()
+            .custom((value, { req }) => {
+                if (value && !/^\d{1,3}$/.test(value)) {
+                    throw new Error('El eje del ojo derecho debe ser un número entero entre 0 y 180, y no contener espacios en blanco');
+                }
+                return true;
+            })
+            .trim(),
+
+        check('oDAvLejos')
+            .optional()
+            .custom((value, { req }) => {
+                if (value && !/^\d{1,2}\/\d{1,2}$/.test(value)) {
+                    throw new Error('La agudeza visual lejos del ojo derecho debe estar en el formato X/X y no contener espacios en blanco');
+                }
+                return true;
+            })
+            .trim(),
+
+        check('oDAvCerca')
+            .optional()
+            .custom((value, { req }) => {
+                if (value && !/^\d{1,2}\/\d{1,2}$/.test(value)) {
+                    throw new Error('La agudeza visual cerca del ojo derecho debe estar en el formato X/X y no contener espacios en blanco');
+                }
+                return true;
+            })
+            .trim(),
+
+        check('oDAdd')
+            .optional()
+            .custom((value, { req }) => {
+                if (value && !/^[+-]?\d+(\.\d{1,2})?$/.test(value)) {
+                    throw new Error('El add del ojo derecho debe ser un número válido en el formato. EJM: +3.44 o -2.44, y no contener espacios en blanco');
+                } if (value && !/^[+-]/.test(value)) {
+                    throw new Error('El add del ojo derecho debe comenzar con un signo + o -');
+                }
+                return true;
+            })
+            .trim(),
+
+        check('oDAltura')
+            .optional()
+            .custom((value, { req }) => {
+                if (value) {
+                    if (!Number.isInteger(Number(value))) {
+                        throw new Error('La altura del ojo derecho debe ser un número entero');
+                    }
+                    if (value.trim() !== value) {
+                        throw new Error('La altura del ojo derecho no puede contener espacios en blanco');
+                    }
+                }
+                return true;
+            })
+            .trim(),
+
+        check('oDCurva')
+            .optional()
+            .custom((value, { req }) => {
+                if (value) {
+                    if (!Number.isInteger(Number(value))) {
+                        throw new Error('La curva del ojo derecho debe ser un número entero');
+                    }
+                    if (value.trim() !== value) {
+                        throw new Error('La curva del ojo derecho no puede contener espacios en blanco');
+                    }
+                }
+                return true;
+            })
+            .trim(),
 
         // Campos del ojo izquierdo (izquierdo)
-        check('oIEsfera').exists().withMessage('La esfera izquierda es requerida').isNumeric().withMessage('La esfera debe ser numérica'),
-        check('oICilindro').exists().withMessage('El cilindro izquierdo es requerido').isNumeric().withMessage('El cilindro debe ser numérico'),
-        check('oIEje').exists().withMessage('El eje izquierdo es requerido').isNumeric().withMessage('El eje debe ser numérico'),
-        check('oIAvLejos').exists().withMessage('La agudeza visual lejos izquierda es requerida').isNumeric().withMessage('La agudeza visual lejos debe ser numérica'),
-        check('oIAvCerca').exists().withMessage('La agudeza visual cerca izquierda es requerida').isNumeric().withMessage('La agudeza visual cerca debe ser numérica'),
-        check('oIAdd').exists().withMessage('El add izquierdo es requerido').isNumeric().withMessage('El add debe ser numérico'),
-        check('oIAltura').exists().withMessage('La altura izquierda es requerida').isNumeric().withMessage('La altura debe ser numérica'),
-        check('oICurva').exists().withMessage('La curva izquierda es requerida').isNumeric().withMessage('La curva debe ser numérica'),
+        check('oIEsfera')
+            .optional()
+            .custom((value, { req }) => {
+                if (value && !/^[+-]?\d+(\.\d{1,2})?$/.test(value)) {
+                    throw new Error('La esfera del ojo izquierdo debe ser un número válido en el formato. EJM: +3.44 o -2.44, y no contener espacios en blanco');
+                } if (value && !/^[+-]/.test(value)) {
+                    throw new Error('La esfera del ojo izquierdo debe comenzar con un signo + o -');
+                }
+                return true;
+            })
+            .trim(),
+
+        check('oICilindro')
+            .optional()
+            .custom((value, { req }) => {
+                if (value && !/^[+-]?\d+(\.\d{1,2})?$/.test(value)) {
+                    throw new Error('El cilindro del ojo izquierdo debe ser un número válido en el formato. EJM: +3.44 o -2.44, y no contener espacios en blanco');
+                } if (value && !/^[+-]/.test(value)) {
+                    throw new Error('El cilintro del ojo izquierdo debe comenzar con un signo + o -');
+                }
+                return true;
+            })
+            .trim(),
+
+        check('oIEje')
+            .optional()
+            .custom((value, { req }) => {
+                if (value && !/^\d{1,3}$/.test(value)) {
+                    throw new Error('El eje del ojo izquierdo debe ser un número entero entre 0 y 180, y no contener espacios en blanco');
+                }
+                return true;
+            }).trim(),
+
+        check('oIAvLejos')
+            .optional()
+            .custom((value, { req }) => {
+                if (value && !/^\d{1,2}\/\d{1,2}$/.test(value)) {
+                    throw new Error('La agudeza visual lejos del ojo izquierdo debe estar en el formato X/X y no contener espacios en blanco');
+                }
+                return true;
+            })
+            .trim(),
+
+        check('oIAvCerca')
+            .optional()
+            .custom((value, { req }) => {
+                if (value && !/^\d{1,2}\/\d{1,2}$/.test(value)) {
+                    throw new Error('La agudeza visual cerca del ojo izquierdo debe estar en el formato X/X y no contener espacios en blanco');
+                }
+                return true;
+            }).trim(),
+
+        check('oIAdd')
+            .optional()
+            .custom((value, { req }) => {
+                if (value && !/^[+-]?\d+(\.\d{1,2})?$/.test(value)) {
+                    throw new Error('El add del ojo izquierdo debe ser un número válido en el formato. EJM: +3.44 o -2.44, y no contener espacios en blanco');
+                } if (value && !/^[+-]/.test(value)) {
+                    throw new Error('El add del ojo izquierdo debe comenzar con un signo + o -');
+                }
+                return true;
+            })
+            .trim(),
+
+        check('oIAltura')
+            .optional()
+            .custom((value, { req }) => {
+                if (value) {
+                    if (!Number.isInteger(Number(value))) {
+                        throw new Error('La altura del ojo izquierdo debe ser un número entero');
+                    }
+                    if (value.trim() !== value) {
+                        throw new Error('La altura del ojo izquierdo no puede contener espacios en blanco');
+                    }
+                }
+                return true;
+            }).trim(),
+
+        check('oICurva')
+            .optional()
+            .custom((value, { req }) => {
+                if (value) {
+                    if (!Number.isInteger(Number(value))) {
+                        throw new Error('La curva del ojo izquierdo debe ser un número entero');
+                    }
+                    if (value.trim() !== value) {
+                        throw new Error('La altura del ojo izquierdo no puede contener espacios en blanco');
+                    }
+                }
+                return true;
+            }).trim(),
 
         // Otros campos de la venta
-        check('dipLejos').exists().withMessage('El dip de lejos es requerido').isNumeric().withMessage('El dip de lejos debe ser numérico'),
-        check('dipCerca').exists().withMessage('El dip de cerca es requerido').isNumeric().withMessage('El dip de cerca debe ser numérico'),
+        check('dipLejos')
+            .optional()
+            .custom((value, { req }) => {
+                if (value && !/^[+-]?\d+(\.\d{1,2})?$/.test(value)) {
+                    throw new Error('El dip de lejos debe ser un número válido en el formato. EJM: +3.44 o -2.44, y no contener espacios en blanco');
+                } if (value && !/^[+-]/.test(value)) {
+                    throw new Error('El dip de lejos debe comenzar con un signo + o -');
+                }
+                return true;
+            })
+            .trim(),
 
-        // Validación personalizada para campos opcionales con formato específico
-        check('observacion').optional().isString().withMessage('La observación debe ser texto'),
+        check('dipCerca')
+            .optional()
+            .custom((value, { req }) => {
+                if (value && !/^[+-]?\d+(\.\d{1,2})?$/.test(value)) {
+                    throw new Error('El dip de cerca debe ser un número válido en el formato. EJM: +3.44 o -2.44, y no contener espacios en blanco');
+                } if (value && !/^[+-]/.test(value)) {
+                    throw new Error('El dip de cerca debe comenzar con un signo + o -');
+                }
+                return true;
+            })
+            .trim(),
+
+        // Campo observacion
+        check('observacion')
+            .trim().not().isEmpty().withMessage('La observación no puede estar vacía')
+            .isString().withMessage('La observación debe ser texto')
+            .custom(value => !(/^\s|\s$/.test(value)))
+            .withMessage('La observación no debe tener espacios en blanco al inicio o al final'),
 
         // IDs de referencias
         check('idCliente').exists().withMessage('El ID del cliente es requerido').isMongoId().withMessage('ID de cliente no válido'),
-        check('idTrabajador').exists().withMessage('El ID del trabajador es requerido').isMongoId().withMessage('ID de trabajador no válido'),
 
         // Opcionales
-        check('idTipoLuna').optional().isMongoId().withMessage('ID de tipo de luna no válido'),
-        check('idMaterialLuna').optional().isMongoId().withMessage('ID de material de luna no válido'),
+        check('idTipoLuna')
+            .optional()
+            .custom((value, { req }) => {
+                if (value && !mongoose.Types.ObjectId.isValid(value)) {
+                    throw new Error('Tipo de luna no válido');
+                }
+                return true;
+            }),
 
-        // Productos y tratamientos
+        check('idMaterialLuna')
+            .optional()
+            .custom((value, { req }) => {
+                if (value && !mongoose.Types.ObjectId.isValid(value)) {
+                    throw new Error('Material de luna no válido');
+                }
+                return true;
+            }),
+
+        // Productos
         check('productosAgregados').isArray({ min: 1 }).withMessage('Debe haber al menos un producto agregado'),
-        check('tratamientosAgregados').isArray({ min: 1 }).withMessage('Debe haber al menos un tratamiento agregado'),
+
+        check('saldo')
+            .exists().withMessage('El saldo es requerido')
+            .isFloat({ min: 0 }).withMessage('El saldo debe ser un número positivo'),
+
+        check('total')
+            .exists().withMessage('El total es requerido')
+            .isFloat({ min: 0 }).withMessage('El total debe ser un número positivo'),
+
+        // Validación para "a cuenta" y "total"
+        check('aCuenta').custom((value, { req }) => {
+            const camposOculares = ['oDEsfera', 'oDCilindro', 'oDEje', 'oDAvLejos', 'oDAvCerca', 'oDAdd', 'oDAltura', 'oDCurva', 'oIEsfera', 'oICilindro', 'oIEje', 'oIAvLejos', 'oIAvCerca', 'oIAdd', 'oIAltura', 'oICurva', 'dipLejos', 'dipCerca'];
+
+            const camposOcularesCompletos = camposOculares.every(campo => req.body[campo]);
+
+            if ((!req.body.idTipoLuna || !req.body.idMaterialLuna) || !camposOcularesCompletos) {
+                if (value !== req.body.total) {
+                    throw new Error('A cuenta debe ser igual al total si no se elige un tipo de luna o material de luna, o si los campos oculares no están completos. Asegurese de tener todos los datos para tratamientos oculares completos.');
+                }
+            }
+            return true;
+        }),
 
         (req, res, next) => {
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
                 return res.status(400).json({ errors: errors.array() });
             }
+
+            // Lista de campos que deben estar presentes si se ingresa al menos uno
+            const camposOcularesDerecho = ['oDEsfera', 'oDCilindro', 'oDEje', 'oDAvLejos', 'oDAvCerca', 'oDAdd', 'oDAltura', 'oDCurva'];
+            const camposOcularesIzquierdo = ['oIEsfera', 'oICilindro', 'oIEje', 'oIAvLejos', 'oIAvCerca', 'oIAdd', 'oIAltura', 'oICurva'];
+            const camposDiplopia = ['dipLejos', 'dipCerca'];
+            const camposIDs = ['idTipoLuna', 'idMaterialLuna'];
+            const camposTratamientos = ['tratamientosAgregados'];
+
+            // Función para verificar si algún campo está presente en la solicitud
+            const algunoIngresado = [...camposOcularesDerecho, ...camposOcularesIzquierdo, ...camposDiplopia, ...camposIDs, ...camposTratamientos]
+                .some(campo => {
+                    if (Array.isArray(req.body[campo])) {
+                        return req.body[campo].length > 0; // Verificar si hay algún tratamiento agregado
+                    }
+                    return req.body[campo] !== undefined && req.body[campo] !== null && req.body[campo] !== "";
+                });
+
+            // Verificar si todos los campos requeridos están presentes
+            if (algunoIngresado) {
+                const todosPresentes = camposOcularesDerecho.concat(camposOcularesIzquierdo, camposDiplopia, camposIDs)
+                    .every(campo => req.body[campo] !== undefined && req.body[campo] !== null && req.body[campo] !== "");
+
+                if (!todosPresentes) {
+                    const camposFaltantes = camposOcularesDerecho.concat(camposOcularesIzquierdo, camposDiplopia, camposIDs)
+                        .filter(campo => req.body[campo] === undefined || req.body[campo] === null || req.body[campo] === "");
+
+                    return res.status(400).json({ errors: [{ msg: `Usted selecciono un campo para realizar un tratamiento ocular y debe completar todos los campos requeridos: ${camposFaltantes.join(', ')}` }] });
+                }
+            }
+
             next();
         }
     ];

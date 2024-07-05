@@ -182,7 +182,7 @@ export const generarCsvVentasDeEsteAnio = async (req, res) => {
 export const generarContratoPDF = async (id) => {
   try {
 
-    const venta = await Venta.findById(id).populate('idCliente').populate('idTrabajador');
+    const venta = await Venta.findById(id).populate('idCliente').populate('idTrabajador').populate('idTipoLuna').populate('idMaterialLuna');
 
     if (!venta) {
       throw new Error('Ingreso no encontrado');

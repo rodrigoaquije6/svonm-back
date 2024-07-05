@@ -4,6 +4,7 @@ import LentesSol from "../models/LentesSol.js";
 import TipoProducto from "../models/TipoProducto.js";
 import Proveedor from "../models/proveedor.js"
 import Marca from "../models/Crear-marca.js";
+import mongoose from "mongoose";
 
 export const crearProducto = async (req, res) => {
 
@@ -228,5 +229,51 @@ export const actualizarEstadoProducto = async (req, res) => {
     } catch (error) {
         console.error('Hubo un error al actualizar el estado del producto:', error);
         res.status(500).send('Hubo un error al actualizar el estado del producto');
+    }
+};
+
+export const eliminarProducto = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        console.log(`Intentando eliminar producto con ID: ${id}`);
+
+        // Verificar si el ID es válido
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            console.error(`ID de producto no válido: ${id}`);
+            return res.status(400).json({ msg: 'ID de producto no válido' });
+        }
+
+        // Buscar el producto por su ID
+        const producto = await Producto.findById(id);
+        if (!producto) {
+            console.error(`Producto no encontrado: ${id}`);
+            return res.status(404).json({ msg: 'Producto no encontrado' });
+        }
+
+        console.log(`Producto encontrado: ${producto.nombre}`);
+
+        // Determinar el tipo de producto para eliminar el documento específico
+        let productoEspecifico;
+        if (producto.tipoProducto && producto.tipoProducto.nombre === 'Montura') {
+            productoEspecifico = await Montura.findOne({ productoId: id });
+        } else if (producto.tipoProducto && producto.tipoProducto.nombre === 'Lentes de sol') {
+            productoEspecifico = await LentesSol.findOne({ productoId: id });
+        }
+
+        // Eliminar el producto general
+        await Producto.findByIdAndDelete(id);
+        console.log(`Producto general eliminado: ${id}`);
+
+        // Eliminar el producto específico si existe
+        if (productoEspecifico) {
+            await productoEspecifico.remove();
+            console.log(`Producto específico eliminado: ${productoEspecifico._id}`);
+        }
+
+        res.json({ msg: 'Producto eliminado correctamente' });
+    } catch (error) {
+        console.error('Hubo un error al eliminar el producto:', error);
+        res.status(500).send('Hubo un error al eliminar el producto');
     }
 };
